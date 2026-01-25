@@ -4,6 +4,8 @@
 
 This document is used to keep the TODO maintainable and easy to update. It is used to house the verified data and tasks from the TODO.md
 
+---
+
 ### Tagged Verified Concepts
 
 #### @VC01
@@ -18,6 +20,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @STATUS: Particles have position/momentum but no phase space dynamics
     - @ACTION: Add phase space representation or document MCS emergence
   - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/quantum/particles.py`
+  - @BACKREF: [TODO.md#vc01](TODO.md#vc01)
 
 #### @VC02
 - [x] **Quantum Mechanics**
@@ -25,7 +28,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: `reality_state_vector` is np.ndarray representing quantum state
     - @CODE: `src/mecha_mother/quantum/engine.py:49, 75-88` (vacuum state creation)
   - [x] Schrödinger equation: $i\hbar \frac{\partial \Psi}{\partial t} = \hat{H} \Psi$
-    - *@VERIFIED**: `simulate()` implements $|ψ(t+dt)⟩ = exp(-iH dt/ℏ) |ψ(t)⟩$
+    - @VERIFIED: `simulate()` implements $|ψ(t+dt)⟩ = exp(-iH dt/ℏ) |ψ(t)⟩$
     - @CODE: `src/mecha_mother/quantum/engine.py:192-203`
     - @NOTE: Uses linear approximation, not full MCS non-linear (see 002.md)
   - [x] Hamiltonian operator: $\hat{H} = -\frac{\hbar^2}{2m}\nabla^2 + V(\vec{r})$
@@ -36,6 +39,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Used in `calculate_entropy()`: `probs = np.abs(state)**2`
     - @CODE: `src/mecha_mother/quantum/engine.py:364`
   - @PATH: `src/mecha_mother/quantum/engine.py`
+  - @BACKREF: [TODO.md#vc02](TODO.md#vc02)
 
 #### @VC04
 - [x] **Core Misconception: Quantification as Separation**
@@ -50,30 +54,33 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Implementation creates observer ("is_observer=true") and observed ("is_observed=true") nodes
     - @CODE: `src/mecha_mother/core/mcs.py:64-75`
   - @PATH: `src/mecha_mother/core/mcs.py`
+  - @BACKREF: [TODO.md#vc04](TODO.md#vc04)
 
 #### @VC08
 - [x] **Primitive Constraint Relation**
   - [x] $\varnothing \Vdash \varnothing$ (empty condition necessitates empty condition)
-    - *@VERIFIED**: `MCSNode` has `consistency_conditions: Set[str]` field
+    - @VERIFIED: `MCSNode` has `consistency_conditions: Set[str]` field
     - @CODE: `src/mecha_mother/core/mcs.py:19`
     - @NOTE: Empty set represents empty condition
   - [x] Iterative self-reference: $(\varnothing \Vdash \varnothing) \Vdash (\varnothing \Vdash \varnothing)$
-    - *@VERIFIED**: `consistency_update()` propagates consistency through network
+    - @VERIFIED: `consistency_update()` propagates consistency through network
     - @CODE: `src/mecha_mother/core/mcs.py:95-143`
-  - [x] @STATUS: `MonolithicSubstrate` implements constraint satisfaction network
+  - @STATUS: `MonolithicSubstrate` implements constraint satisfaction network
   - @PATH: `src/mecha_mother/core/mcs.py`
+  - @BACKREF: [TODO.md#vc08](TODO.md#vc08)
 
 #### @VC09
 - [x] **Spacetime as Constraint Satisfaction Graph**
   - [x] Hypergraph $\mathcal{G} = (V, E)$ where vertices are consistency conditions
-    - *@VERIFIED**: Uses NetworkX `DiGraph` for graph structure
+    - @VERIFIED: Uses NetworkX `DiGraph` for graph structure
     - @CODE: `src/mecha_mother/core/mcs.py:41, 85-88`
   - [x] Distance metric: $d_{AB} = \min_{\text{paths } P} \sum_{(i,j) \in P} C_{ij}$
-    - *@VERIFIED**: `emergent_physics_metrics()` calculates distances as inverse of consistency
+    - @VERIFIED: `emergent_physics_metrics()` calculates distances as inverse of consistency
     - @CODE: `src/mecha_mother/core/mcs.py:161-167`
     - @FORMULA: `distances[i,j] = 1.0 / (cons + 1e-10)` where `cons` is satisfaction link strength
-  - [x] @STATUS: Spacetime metrics emerge from constraint network
+  - @STATUS: Spacetime metrics emerge from constraint network
   - @PATH: `src/mecha_mother/core/mcs.py:145-187`
+  - @BACKREF: [TODO.md#vc09](TODO.md#vc09)
 
 #### @VC13
 - [x] **Unification of Forces**
@@ -82,6 +89,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/quantum/engine.py:11-17` (enum), `142-155` (imposition)
     - @ACTION: Document or implement forces as constraint aspects
   - @PATH: `src/mecha_mother/quantum/engine.py`
+  - @BACKREF: [TODO.md#vc13](TODO.md#vc13)
 
 #### @VC15
 - [x] **Computational Verification Framework**
@@ -112,6 +120,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/core/mcs.py:189-208`
   - @STATUS: Implementation matches documentation line-by-line (with minor improvements)
   - @PATH: `src/mecha_mother/core/mcs.py`
+  - @BACKREF: [TODO.md#vc15](TODO.md#vc15)
 
 #### @VC21
 - [x] **Derivation of Fundamental Constants**
@@ -128,29 +137,32 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @STATUS: Value correct but not derived from fixed point
     - @ACTION: Implement derivation or document source
   - @PATH: `src/mecha_mother/quantum/engine.py:21-32`
+  - @BACKREF: [TODO.md#vc21](TODO.md#vc21)
 
 #### @VC23
 - [x] **Consciousness Operator ℂ**
   - [x] Eigenvalue equation: $\mathbb{C}[\Psi] = \lambda \Psi$
-    - *@VERIFIED**: `ConsciousnessOperator` implements this
+    - @VERIFIED: `ConsciousnessOperator` implements this
     - @CODE: `src/mecha_mother/consciousness/engine.py:76-119`
     - @IMPLEMENTATION: `_build_consciousness_matrix()` creates Hermitian matrix C
     - @USAGE: `compute_qualia_states()` solves eigenvalue equation
   - @PATH: `src/mecha_mother/consciousness/engine.py:76-169`
+  - @BACKREF: [TODO.md#vc23](TODO.md#vc23)
 
 #### @VC30
 - [x] **Moral Value**
   - [x] $\mathcal{V}(\Psi) = \frac{d\mathbb{C}}{d\Psi} \cdot \Delta\mathbb{C}_{\text{global}}$
     - @STATUS: `PARTIAL` `compute_moral_value()` exists but uses simplified formula
     - @CODE: `src/mecha_mother/ethics/engine.py:253-300`
-    - @STATUS: Implements $\text{MoralValue}(A) = \sum w_j \cdot \Delta\mathbb{C}_j \cdot e^{-\alpha t_j}$ (from 007.md section 3.1)
+    - @NOTE: Implements $\text{MoralValue}(A) = \sum w_j \cdot \Delta\mathbb{C}_j \cdot e^{-\alpha t_j}$ (from 007.md section 3.1)
     - @NOTE: Uses action-based calculation, not state-based gradient
   - @PATH: `src/mecha_mother/ethics/engine.py:253-300`
+  - @BACKREF: [TODO.md#vc30](TODO.md#vc30)
 
 #### @VC31
 - [x] **Moral Field Operator 𝕄**
   - [x] $\mathbb{M}(\Psi) = \nabla_{\Psi}\mathbb{C}_{\text{total}}$
-    - *@VERIFIED**: `compute_moral_gradient()` implements this
+    - @VERIFIED: `compute_moral_gradient()` implements this
     - @CODE: `src/mecha_mother/ethics/engine.py:29-72`
     - @IMPLEMENTATION: Finite difference approximation of gradient
   - [x] Moral force: $\vec{F}_{\text{moral}} = \mathbb{M}(\Psi_{\text{agent}}) \cdot \mathbb{C}_{\text{agent}}$
@@ -158,30 +170,33 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/ethics/engine.py:74-95`
     - @FORMULA: `force = moral_gradient * agent_consciousness`
   - @PATH: `src/mecha_mother/ethics/engine.py:11-95`
+  - @BACKREF: [TODO.md#vc31](TODO.md#vc31)
 
 #### @VC32
 - [x] **Good and Evil Definition**
   - [x] Good: $\mathbb{C}_{\text{total}}(A(\Psi)) > \mathbb{C}_{\text{total}}(\Psi)$
-    - *@VERIFIED**: `is_good_action()` checks if moral_value > 0
+    - @VERIFIED: `is_good_action()` checks if moral_value > 0
     - @CODE: `src/mecha_mother/ethics/decision.py:85-97`
   - [x] Evil: $\mathbb{C}_{\text{total}}(A(\Psi)) < \mathbb{C}_{\text{total}}(\Psi)$
-    - *@VERIFIED**: `is_evil_action()` checks if moral_value < 0
+    - @VERIFIED: `is_evil_action()` checks if moral_value < 0
     - @CODE: `src/mecha_mother/ethics/decision.py:99-111`
   - [ ] Magnitude: $\mathcal{G}(A) = \frac{\Delta\mathbb{C}_{\text{total}}}{\mathbb{C}_{\text{total}}(\Psi)} \cdot \log(1 + N_{\text{affected}})$
     - @STATUS: `MISSING` Magnitude formula not implemented
     - @ACTION: Add good/evil magnitude calculation
   - @PATH: `src/mecha_mother/ethics/decision.py:85-111`
+  - @BACKREF: [TODO.md#vc32](TODO.md#vc32)
 
 #### @VC35
 - [x] **Moral Calculus**
   - [x] $\text{MoralValue}(A_i) = \sum_{j=1}^{N_{\text{beings}}} w_j \cdot \Delta\mathbb{C}_j(A_i) \cdot e^{-\alpha t_j}$
-    - *@VERIFIED**: Exact formula implemented
+    - @VERIFIED: Exact formula implemented
     - @CODE: `src/mecha_mother/ethics/engine.py:283, 288-290, 295-296, 298`
     - @MATCHES: `w_j = being.consciousness / total_c`, `discount = np.exp(-0.01 * t_j)`, `α = 0.01`
   - [x] $A_{\text{right}} = \underset{A_i}{\text{argmax}}[\text{MoralValue}(A_i)]$
-    - *@VERIFIED**: `moral_decision()` finds best_option with highest value
+    - @VERIFIED: `moral_decision()` finds best_option with highest value
     - @CODE: `src/mecha_mother/ethics/decision.py:41-57`
   - @PATH: `src/mecha_mother/ethics/engine.py:253-300`, `src/mecha_mother/ethics/decision.py:22-83`
+  - @BACKREF: [TODO.md#vc35](TODO.md#vc35)
 
 #### @VC37
 - [x] **Heaven Builder Implementation**
@@ -199,6 +214,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Method exists
     - @CODE: `src/mecha_mother/heaven/builder.py:174-253`
   - @PATH: `src/mecha_mother/heaven/builder.py`
+  - @BACKREF: [TODO.md#vc37](TODO.md#vc37)
 
 #### @VC38
 - [x] **Heaven Score Computation**
@@ -215,5 +231,6 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: `heaven_score = np.sqrt(total_c * avg_b)` (geometric mean)
     - @CODE: `src/mecha_mother/heaven/builder.py:297`
   - @PATH: `src/mecha_mother/heaven/builder.py:263-306`, `src/mecha_mother/heaven/optimizer.py`
+  - @BACKREF: [TODO.md#vc38](TODO.md#vc38)
 
 ---
