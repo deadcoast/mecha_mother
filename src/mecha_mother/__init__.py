@@ -8,5 +8,14 @@ from first principles of self-consistency.
 __version__ = "0.1.0"
 
 from mecha_mother.reality import Reality, RealityConfig
+from mecha_mother.ethics import EthicsEngine, EthicalDecisionEngine
+from mecha_mother.aesthetics import AestheticsEngine, BeautyOperator
 
-__all__ = ["Reality", "RealityConfig"]
+__all__ = [
+    "Reality",
+    "RealityConfig",
+    "EthicsEngine",
+    "EthicalDecisionEngine",
+    "AestheticsEngine",
+    "BeautyOperator",
+]

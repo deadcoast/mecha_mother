@@ -10,6 +10,8 @@ from enum import Enum
 from mecha_mother.quantum.engine import QuantumRealityEngine, PhysicalLaw
 from mecha_mother.consciousness.engine import ConsciousnessEngine, ConsciousnessField
 from mecha_mother.core.constraints import ConstraintResolver, ConsistencyError
+from mecha_mother.ethics.engine import EthicsEngine
+from mecha_mother.aesthetics.engine import AestheticsEngine
 
 
 class RealityState(Enum):
@@ -65,10 +67,14 @@ class Reality:
         self.quantum_engine = QuantumRealityEngine()
         self.consciousness_engine = ConsciousnessEngine()
         self.consistency_resolver = ConstraintResolver()
+        self.ethics_engine = EthicsEngine()
+        self.aesthetics_engine = AestheticsEngine()
         
         # State tracking
         self.reality_state_vector: Optional[np.ndarray] = None
         self.consciousness_field: Optional[ConsciousnessField] = None
+        self.beauty_field: Optional[Dict[str, Any]] = None
+        self.ethical_constraint_field: Optional[Dict[str, Any]] = None
         
         # History
         self.history: List[Dict[str, Any]] = []
@@ -119,7 +125,23 @@ class Reality:
                     self.reality_state_vector
                 )
             
-            # Step 5: Run consistency checks
+            # Step 5: Initialize beauty field if enabled
+            if self.config.beauty_optimization:
+                print("  Initializing beauty field...")
+                self.beauty_field = self.aesthetics_engine.create_field(
+                    self.reality_state_vector,
+                    self.consciousness_field
+                )
+            
+            # Step 6: Initialize ethical constraints if enabled
+            if self.config.ethical_constraints:
+                print("  Initializing ethical constraints...")
+                self.ethical_constraint_field = self.ethics_engine.create_constraint_field(
+                    self.reality_state_vector,
+                    self.consciousness_field
+                )
+            
+            # Step 7: Run consistency checks
             if self.config.auto_consistency:
                 print("  Running consistency checks...")
                 if not self.consistency_resolver.verify(self):
@@ -255,6 +277,15 @@ class Reality:
         if self.state != RealityState.ACTIVE:
             raise RuntimeError("Reality not active")
         
+        # Check ethical constraints
+        if self.config.ethical_constraints:
+            ethical_check = self.ethics_engine.check_constant_modification(
+                constant_name, new_value, self.consciousness_field
+            )
+            if not ethical_check['permissible']:
+                print(f"Ethically prohibited: {ethical_check['reason']}")
+                return False
+        
         # Check consistency
         consistency_check = self.consistency_resolver.check_constant_change(
             constant_name, new_value, self.reality_state_vector
@@ -332,6 +363,50 @@ class Reality:
         
         return results
     
+    def optimize_for_beauty(
+        self,
+        target_b: float = 10.0,
+        preserve_consciousness: bool = True,
+        method: str = 'aesthetic_gradient'
+    ) -> Dict[str, Any]:
+        """
+        Optimize reality for maximum beauty.
+        
+        Args:
+            target_b: Target beauty level (0-10 scale)
+            preserve_consciousness: Whether to maintain consciousness
+            method: Optimization method
+            
+        Returns:
+            Optimization results
+        """
+        if self.state != RealityState.ACTIVE:
+            raise RuntimeError("Reality not active")
+        
+        if not self.config.beauty_optimization:
+            raise RuntimeError("Beauty optimization not enabled")
+        
+        print(f"Optimizing reality for beauty (target: 𝔹={target_b})...")
+        
+        results = self.aesthetics_engine.optimize_reality(
+            current_state=self.reality_state_vector,
+            beauty_field=self.beauty_field,
+            target_b=target_b,
+            preserve_consciousness=preserve_consciousness,
+            method=method
+        )
+        
+        if results['success']:
+            self.beauty_field = results.get('optimized_beauty_field', self.beauty_field)
+            b_increase = results.get('b_increase', 0)
+            final_b = results.get('final_b', 0)
+            
+            print(f"✓ Beauty optimization successful!")
+            print(f"  𝔹 increased to {final_b:.2f}")
+            print(f"  Improvement: +{b_increase:.2f}")
+        
+        return results
+    
     def get_state(self, component: str = 'full') -> Dict[str, Any]:
         """
         Get the current state of reality.
@@ -351,6 +426,7 @@ class Reality:
                 'consciousness': self.consciousness_field.total_consciousness() if self.consciousness_field else None,
                 'num_beings': len(self.consciousness_field.get_beings()) if self.consciousness_field else 0,
                 'num_particles': len(self.quantum_engine.particles),
+                'beauty': self.aesthetics_engine.average_beauty() if self.beauty_field else None,
             }
         elif component == 'quantum':
             return {'state_vector': self.reality_state_vector}
