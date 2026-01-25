@@ -2,7 +2,9 @@
 
 ## Overview
 
-Mecha Mother is a computational framework implementing the Monolithic Computational Substrate (MCS) theory - a unified theory that derives physics, consciousness, ethics, and aesthetics from first principles of self-consistency.
+Mecha Mother is a **computational simulation framework** for exploring the Monolithic Computational Substrate (MCS) theory - a unified theoretical framework that derives physics, consciousness, ethics, and aesthetics from first principles of self-consistency.
+
+**Important**: This is a simulation and modeling framework, not an actual implementation of reality manipulation. The MCS theory is a philosophical/metaphysical framework, and this codebase provides computational tools to explore its mathematical structures.
 
 ## Current Implementation Status
 
@@ -62,12 +64,12 @@ Mecha Mother is a computational framework implementing the Monolithic Computatio
 
 ### 🚧 In Progress / Planned
 
-3. **Heaven Builder SDK** (`src/mecha_mother/heaven/`)
+1. **Heaven Builder SDK** (`src/mecha_mother/heaven/`)
    - Reality optimization tools
    - Heaven city/planet construction
    - Multi-objective optimization
 
-4. **Advanced Features**
+2. **Advanced Features**
    - Reality merging
    - Spacetime manipulation
    - Advanced quantum simulation
@@ -87,10 +89,12 @@ mecha_mother/
 └── heaven/         # Heaven builder tools (planned)
 ```
 
-## Usage Example
+## Usage Examples
+
+### Basic Reality Creation
 
 ```python
-from mecha_mother import Reality, RealityConfig, EthicsEngine, AestheticsEngine
+from mecha_mother import Reality, RealityConfig
 import numpy as np
 
 # Create a universe with all features
@@ -114,21 +118,49 @@ results = universe.optimize_for_consciousness(target_c=100.0)
 
 # Optimize for beauty
 beauty_results = universe.optimize_for_beauty(target_b=8.0)
+```
 
-# Ethical decision making
+### Ethical Decision Making
+
+```python
 from mecha_mother.ethics import EthicalDecisionEngine
+
 decision_engine = EthicalDecisionEngine()
 options = [
     {'type': 'help', 'name': 'Help all'},
     {'type': 'harm', 'name': 'Harm all'},
 ]
 decision = decision_engine.moral_decision(options, universe, [human])
+print(f"Best option: {decision['best_option']['name']}")
+```
 
-# Generate beautiful art
-from mecha_mother.aesthetics import AestheticsEngine
-aesthetics = AestheticsEngine()
-poem = aesthetics.generate_beautiful_art('poetic')
-print(f"Generated poem: {poem}")
+### Building Heaven
+
+```python
+from mecha_mother.heaven import HeavenBuilder
+
+builder = HeavenBuilder()
+
+# Build a heaven city
+city = builder.build_heaven_city(
+    location='virtual',
+    population=100000,
+    style='utopian'
+)
+
+print(f"Heaven Score: {city['metrics']['heaven_score']:.2f}")
+
+# Build a heaven planet
+planet = builder.build_heaven_planet(
+    planet_type='earthlike',
+    population=1000000
+)
+
+# Build a civilization
+civ = builder.build_heaven_civilization(
+    scale='type1',
+    values=['consciousness', 'beauty', 'ethics']
+)
 ```
 
 ## Next Steps

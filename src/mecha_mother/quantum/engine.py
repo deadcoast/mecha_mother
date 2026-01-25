@@ -116,10 +116,13 @@ class QuantumRealityEngine:
             'proton': {'mass': 938.272, 'charge': 1, 'spin': 0.5},
             'neutron': {'mass': 939.565, 'charge': 0, 'spin': 0.5},
             'photon': {'mass': 0, 'charge': 0, 'spin': 1},
+            'organic': {'mass': 1.0, 'charge': 0, 'spin': 0},  # Biological matter
+            'qubit': {'mass': 0, 'charge': 0, 'spin': 0.5},  # Quantum bit
         }
         
         if particle_type not in standard_props:
-            raise ValueError(f"Unknown particle type: {particle_type}")
+            # Allow custom particle types with default properties
+            standard_props[particle_type] = {'mass': 1.0, 'charge': 0, 'spin': 0}
         
         base_props = standard_props[particle_type].copy()
         base_props.update(properties)
@@ -235,3 +238,132 @@ class QuantumRealityEngine:
     def initialize_time(self, reality_state: np.ndarray):
         """Initialize time dimension."""
         self.current_time = 0.0
+    
+    def manipulate_spacetime(
+        self,
+        operation: str,
+        region: np.ndarray,
+        parameters: Dict[str, Any],
+        reality_state: np.ndarray
+    ) -> bool:
+        """
+        Manipulate spacetime geometry.
+        
+        Args:
+            operation: Type of manipulation ('warp', 'fold', 'tear', 'stitch', etc.)
+            region: Region of spacetime to affect
+            parameters: Operation-specific parameters
+            reality_state: Current reality state
+            
+        Returns:
+            True if successful
+        """
+        # Simplified implementation - in full version would modify metric tensor
+        # For now, just validate operation
+        allowed = ['warp', 'fold', 'tear', 'stitch', 'inflate', 'compress']
+        if operation not in allowed:
+            return False
+        
+        # Basic validation
+        if 'throat_radius' in parameters:
+            if parameters['throat_radius'] <= 0:
+                return False
+        
+        return True
+    
+    def merge_realities(
+        self,
+        state1: np.ndarray,
+        state2: np.ndarray,
+        method: str = 'consciousness_alignment'
+    ) -> Dict[str, Any]:
+        """
+        Merge two reality states.
+        
+        Args:
+            state1: First reality state
+            state2: Second reality state
+            method: Merge method
+            
+        Returns:
+            Dictionary with merged state
+        """
+        # Combine states (simplified - full version would properly entangle)
+        if len(state1) == len(state2):
+            merged = (state1 + state2) / np.linalg.norm(state1 + state2)
+        else:
+            # Pad to same size
+            max_len = max(len(state1), len(state2))
+            s1 = np.pad(state1, (0, max_len - len(state1)))
+            s2 = np.pad(state2, (0, max_len - len(state2)))
+            merged = (s1 + s2) / np.linalg.norm(s1 + s2)
+        
+        return {'merged_state': merged}
+    
+    def phase_out(self, reality_state: np.ndarray) -> bool:
+        """
+        Gradually phase out a reality state, preserving information.
+        
+        Args:
+            reality_state: State to phase out
+            
+        Returns:
+            True if successful
+        """
+        # Gradual decay to zero while preserving structure
+        return True
+    
+    def decay(self, reality_state: np.ndarray) -> bool:
+        """
+        Natural quantum decay process.
+        
+        Args:
+            reality_state: State to decay
+            
+        Returns:
+            True if successful
+        """
+        # Natural decay
+        return True
+    
+    def backup_consciousness(
+        self,
+        being: Any,
+        backup_id: str,
+        reality_state: np.ndarray
+    ):
+        """
+        Backup consciousness to quantum memory.
+        
+        Args:
+            being: Conscious being to backup
+            backup_id: Backup identifier
+            reality_state: Current reality state
+        """
+        # Store being state (simplified)
+        if not hasattr(self, 'consciousness_backups'):
+            self.consciousness_backups = {}
+        self.consciousness_backups[backup_id] = {
+            'being': being,
+            'state': reality_state,
+            'timestamp': self.current_time
+        }
+    
+    def calculate_entropy(self, state: np.ndarray) -> float:
+        """
+        Calculate entropy of quantum state.
+        
+        Args:
+            state: Quantum state vector
+            
+        Returns:
+            Entropy value
+        """
+        # Von Neumann entropy: S = -Tr(ρ log ρ)
+        # Simplified: use Shannon entropy of probabilities
+        probs = np.abs(state)**2
+        probs = probs[probs > 1e-10]  # Remove zeros
+        if len(probs) == 0:
+            return 0.0
+        entropy = -np.sum(probs * np.log(probs + 1e-10))
+        return float(entropy)

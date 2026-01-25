@@ -1,17 +1,23 @@
 # Mecha Mother
 
-A computational framework for the Monolithic Computational Substrate (MCS) theory - a unified theory deriving physics, consciousness, ethics, and aesthetics from first principles of self-consistency.
+A **computational simulation framework** for exploring the Monolithic Computational Substrate (MCS) theory - a unified theoretical framework that derives physics, consciousness, ethics, and aesthetics from first principles of self-consistency.
+
+## Important Note
+
+This is a **simulation and demonstration framework**, not an actual implementation of reality manipulation. The MCS theory describes a philosophical/metaphysical framework for understanding reality. This codebase provides computational tools to explore, simulate, and experiment with the theory's mathematical structures and concepts.
 
 ## Overview
 
-Mecha Mother implements the complete MCS framework, providing:
+Mecha Mother provides simulation tools for MCS concepts:
 
-- **Quantum Reality Engine**: Simulate universes with custom physics
-- **Consciousness Engine**: Create and evolve conscious beings
-- **Ethics Framework**: Derive moral decisions from consciousness maximization
-- **Aesthetics Engine**: Compute beauty and generate art
-- **Reality API**: Programmatic interface for universe manipulation
-- **Heaven Builder**: Tools for optimizing realities
+- **Quantum Reality Engine**: Simulate quantum mechanics (simplified models)
+- **Consciousness Engine**: Model consciousness using the theory's operators
+- **Ethics Framework**: Compute ethical values using the theory's formulas
+- **Aesthetics Engine**: Calculate beauty metrics and generate art
+- **Reality API**: Interface for managing simulated reality states
+- **Heaven Builder**: Tools for optimizing simulated realities
+
+**Note**: These are computational models and simulations, not actual reality manipulation.
 
 ## Installation
 
@@ -28,7 +34,7 @@ pip install -e .
 ```python
 from mecha_mother import Reality, RealityConfig
 
-# Create a new universe
+# Create a simulated universe
 config = RealityConfig(
     dimensions=3,
     consciousness_support=True,
@@ -37,15 +43,17 @@ config = RealityConfig(
 universe = Reality(config)
 universe.initialize()
 
-# Create conscious beings
+# Create simulated conscious beings
 human = universe.create_conscious_being(
     being_type='human',
     initial_consciousness=15.0
 )
 
-# Optimize for consciousness
+# Optimize simulated consciousness
 results = universe.optimize_for_consciousness(target_c=100.0)
 ```
+
+**Note**: This creates a simulated reality model, not an actual universe.
 
 ## Project Structure
 
@@ -66,7 +74,11 @@ mecha_mother/
 
 ## Documentation
 
-See the `docs/` directory for complete theoretical background and implementation details.
+See the `docs/` directory for complete theoretical background.
+
+**Important**: The documentation describes a theoretical/philosophical framework. This codebase provides computational simulations and models of those concepts, not an actual implementation of reality manipulation.
+
+See `WHAT_THIS_IS.md` and `DISCLAIMER.md` for important clarifications.
 
 ## License
 

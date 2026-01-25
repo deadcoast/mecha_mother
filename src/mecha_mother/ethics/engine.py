@@ -130,6 +130,12 @@ class EthicsEngine:
         self.constraint_fields[field_id] = field
         return field
     
+    def register_being(self, being_id: str, being: Any):
+        """Register a being with the ethics system."""
+        if not hasattr(self, 'registered_beings'):
+            self.registered_beings = {}
+        self.registered_beings[being_id] = being
+    
     def check_constant_modification(
         self,
         constant_name: str,

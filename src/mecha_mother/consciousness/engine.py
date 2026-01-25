@@ -42,6 +42,35 @@ class ConsciousnessField:
         if not beings_list:
             return 0.0
         return self.total_consciousness() / len(beings_list)
+    
+    def add_particle(self, particle_id: str, position: np.ndarray):
+        """Add a particle to the consciousness field."""
+        # Particles can contribute to consciousness field structure
+        if not hasattr(self, 'particles'):
+            self.particles = {}
+        self.particles[particle_id] = position
+    
+    def update_for_constant_change(self, constant_name: str, new_value: float):
+        """Update field for physical constant change."""
+        # Recalculate consciousness values based on new constants
+        # Simplified: just mark as updated
+        if not hasattr(self, 'constant_updates'):
+            self.constant_updates = {}
+        self.constant_updates[constant_name] = new_value
+    
+    def get_distribution(self) -> Dict[str, float]:
+        """Get distribution of consciousness values."""
+        beings = self.get_beings()
+        if not beings:
+            return {}
+        
+        distribution = {}
+        for being in beings:
+            if hasattr(being, 'consciousness'):
+                c_val = round(being.consciousness, 1)
+                distribution[c_val] = distribution.get(c_val, 0) + 1
+        
+        return distribution
 
 
 class ConsciousnessOperator:
@@ -164,6 +193,36 @@ class ConsciousnessEngine:
         field_id = f"field_{id(field)}"
         self.fields[field_id] = field
         return field
+    
+    def merge_fields(
+        self,
+        field1: ConsciousnessField,
+        field2: ConsciousnessField,
+        method: str = 'consciousness_alignment'
+    ) -> ConsciousnessField:
+        """
+        Merge two consciousness fields.
+        
+        Args:
+            field1: First field
+            field2: Second field
+            method: Merge method
+            
+        Returns:
+            Merged field
+        """
+        merged = ConsciousnessField()
+        
+        # Combine all beings
+        for being_id, being in field1.beings.items():
+            merged.add_being(being_id, being)
+        
+        for being_id, being in field2.beings.items():
+            # Avoid ID conflicts
+            new_id = f"{being_id}_merged"
+            merged.add_being(new_id, being)
+        
+        return merged
     
     def create_being(
         self,

@@ -1,0 +1,245 @@
+{
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MARKDOWNLINT-CLI2 CONFIGURATION
+    // Schema: https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/main/schema/markdownlint-cli2-config-schema.json
+    // ═══════════════════════════════════════════════════════════════════════════
+    "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/main/schema/markdownlint-cli2-config-schema.json",
+    // ───────────────────────────────────────────────────────────────────────────
+    // GLOB PATTERNS
+    // Cross-platform: use forward slashes, double-quote in shells
+    // ───────────────────────────────────────────────────────────────────────────
+    "globs": [
+        "**/*.md",
+        "**/*.markdown"
+    ],
+    // ───────────────────────────────────────────────────────────────────────────
+    // IGNORE PATTERNS
+    // Prefix with # for shell compatibility (! can cause issues in bash)
+    // ───────────────────────────────────────────────────────────────────────────
+    "ignores": [
+        "node_modules",
+        "**/node_modules/**",
+        "vendor/**",
+        ".git/**",
+        "dist/**",
+        "build/**",
+        "out/**",
+        "coverage/**",
+        "**/CHANGELOG.md",
+        "**/.obsidian/**"
+    ],
+    // ───────────────────────────────────────────────────────────────────────────
+    // CLI BEHAVIOR
+    // ───────────────────────────────────────────────────────────────────────────
+    // Auto-fix fixable issues when running
+    "fix": false,
+    // ───────────────────────────────────────────────────────────────────────────
+    // FRONT MATTER HANDLING
+    // Regex to identify and skip front matter blocks
+    // ───────────────────────────────────────────────────────────────────────────
+    "frontMatter": "^(---\\s*$[\\s\\S]*?^---\\s*$|\\+\\+\\+\\s*$[\\s\\S]*?^\\+\\+\\+\\s*$)",
+    // ───────────────────────────────────────────────────────────────────────────
+    // INLINE CONFIG
+    // Allow/disallow <!-- markdownlint-disable --> comments in files
+    // ───────────────────────────────────────────────────────────────────────────
+    "noInlineConfig": false,
+    // ───────────────────────────────────────────────────────────────────────────
+    // OUTPUT FORMATTERS
+    // Extensible output pipeline — uncomment to enable
+    // ───────────────────────────────────────────────────────────────────────────
+    // "outputFormatters": [
+    //   [ "markdownlint-cli2-formatter-default" ],
+    //   [ "markdownlint-cli2-formatter-junit", { "name": "markdownlint-report.xml" } ],
+    //   [ "markdownlint-cli2-formatter-codequality", { "name": "gl-code-quality-report.json" } ]
+    // ],
+    // ───────────────────────────────────────────────────────────────────────────
+    // CUSTOM RULES
+    // Path to custom rule modules — uncomment to enable
+    // ───────────────────────────────────────────────────────────────────────────
+    // "customRules": [
+    //   "./rules/custom-rule.js"
+    // ],
+    // ───────────────────────────────────────────────────────────────────────────
+    // MODULE PATHS
+    // Additional paths for resolving custom rules and formatters
+    // ───────────────────────────────────────────────────────────────────────────
+    // "modulePaths": [
+    //   "./node_modules"
+    // ],
+    // ───────────────────────────────────────────────────────────────────────────
+    // RULE CONFIGURATION
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+    // ───────────────────────────────────────────────────────────────────────────
+    "config": {
+        // ═════════════════════════════════════════════════════════════════════════
+        // INHERITANCE & DEFAULTS
+        // ═════════════════════════════════════════════════════════════════════════
+        "default": true,
+        // Extend from shared config (npm packages or local files)
+        // "extends": "markdownlint/style/prettier",
+        // ═════════════════════════════════════════════════════════════════════════
+        // HEADINGS
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD001: Heading levels should increment by one level at a time
+        "heading-increment": true,
+        // MD003: Heading style — consistent ATX (#) style
+        "heading-style": {
+            "style": "atx"
+        },
+        // MD018/MD019: No space / multiple spaces after hash on atx heading
+        "no-missing-space-atx": true,
+        "no-multiple-space-atx": true,
+        // MD022: Headings should be surrounded by blank lines
+        // DISABLED: Conflicts with compact documentation styles
+        "blanks-around-headings": false,
+        // MD024: No duplicate heading content (allow in different sections)
+        "no-duplicate-heading": {
+            "siblings_only": true
+        },
+        // MD025: Single top-level heading (H1)
+        "single-h1": true,
+        // MD041: First line should be a top-level heading
+        "first-line-h1": {
+            "front_matter_title": "^\\s*title\\s*[:=]"
+        },
+        // ═════════════════════════════════════════════════════════════════════════
+        // WHITESPACE & LINE LENGTH
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD007: Unordered list indentation
+        "ul-indent": {
+            "indent": 2,
+            "start_indented": false
+        },
+        // MD009: Trailing spaces
+        "no-trailing-spaces": {
+            "br_spaces": 2,
+            "list_item_empty_lines": false,
+            "strict": false
+        },
+        // MD010: Hard tabs
+        // DISABLED: Allow tabs for accessibility/preference
+        "no-hard-tabs": false,
+        // MD012: Multiple consecutive blank lines
+        "no-multiple-blanks": {
+            "maximum": 2
+        },
+        // MD013: Line length
+        // DISABLED: Let editors/prettier handle wrapping
+        "line-length": false,
+        // MD030: Spaces after list markers
+        "list-marker-space": {
+            "ol_multi": 1,
+            "ol_single": 1,
+            "ul_multi": 1,
+            "ul_single": 1
+        },
+        // ═════════════════════════════════════════════════════════════════════════
+        // LISTS
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD004: Unordered list style — consistent dashes
+        "ul-style": {
+            "style": "dash"
+        },
+        // MD005: Inconsistent indentation for list items
+        "list-indent": true,
+        // MD029: Ordered list item prefix — ordered numbering
+        "ol-prefix": {
+            "style": "ordered"
+        },
+        // MD031: Fenced code blocks should be surrounded by blank lines
+        // DISABLED: Conflicts with compact styles
+        "blanks-around-fences": false,
+        // MD032: Lists should be surrounded by blank lines
+        // DISABLED: Conflicts with compact documentation
+        "blanks-around-lists": false,
+        // ═════════════════════════════════════════════════════════════════════════
+        // CODE BLOCKS
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD014: Dollar signs before commands without output
+        "commands-show-output": true,
+        // MD031: Fenced code blocks surrounded by blank lines
+        // (configured above under LISTS)
+        // MD038: Spaces inside code span elements
+        "no-space-in-code": true,
+        // MD040: Fenced code blocks should have a language specified
+        // DISABLED: Not all code blocks need language hints
+        "fenced-code-language": false,
+        // MD046: Code block style — prefer fenced
+        // DISABLED: Allow flexibility
+        "code-block-style": false,
+        // MD048: Code fence style — backticks
+        "code-fence-style": {
+            "style": "backtick"
+        },
+        // ═════════════════════════════════════════════════════════════════════════
+        // LINKS & IMAGES
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD011: Reversed link syntax
+        "no-reversed-links": true,
+        // MD034: Bare URLs — require angle brackets or link syntax
+        "no-bare-urls": true,
+        // MD039: Spaces inside link text
+        "no-space-in-links": true,
+        // MD042: No empty links
+        "no-empty-links": true,
+        // MD045: Images should have alt text
+        "no-alt-text": true,
+        // MD051: Link fragments should be valid
+        // DISABLED: Can produce false positives with generated headings
+        "link-fragments": false,
+        // MD053: Link/image reference definitions should be needed
+        "link-image-reference-definitions": {
+            "ignored_definitions": [
+                "//"
+            ]
+        },
+        // MD054: Link and image style
+        "link-image-style": {
+            "autolink": true,
+            "collapsed": true,
+            "full": true,
+            "inline": true,
+            "shortcut": true,
+            "url_inline": true
+        },
+        // ═════════════════════════════════════════════════════════════════════════
+        // HTML & RAW CONTENT
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD033: Inline HTML
+        // DISABLED: Allow HTML for advanced formatting
+        "no-inline-html": false,
+        // ═════════════════════════════════════════════════════════════════════════
+        // EMPHASIS & FORMATTING
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD035: Horizontal rule style — consistent
+        "hr-style": {
+            "style": "---"
+        },
+        // MD036: Emphasis used instead of heading
+        // DISABLED: Valid stylistic choice
+        "no-emphasis-as-heading": false,
+        // MD037: Spaces inside emphasis markers
+        "no-space-in-emphasis": true,
+        // MD049: Emphasis style — asterisks
+        "emphasis-style": {
+            "style": "asterisk"
+        },
+        // MD050: Strong style — asterisks
+        "strong-style": {
+            "style": "asterisk"
+        },
+        // ═════════════════════════════════════════════════════════════════════════
+        // SPECIAL CONTENT
+        // ═════════════════════════════════════════════════════════════════════════
+        // MD027: Multiple spaces after blockquote symbol
+        "no-multiple-space-blockquote": true,
+        // MD028: Blank line inside blockquote
+        "no-blanks-blockquote": true,
+        // MD055: Table pipe style
+        "table-pipe-style": {
+            "style": "leading_and_trailing"
+        },
+        // MD056: Table column count — consistent columns
+        "table-column-count": true
+    }
+}
