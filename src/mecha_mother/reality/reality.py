@@ -645,7 +645,7 @@ class Reality:
         
         print(f"Simulating {time_steps} steps (dt={dt})...")
         
-        simulation_params = {
+        simulation_params: Dict[str, Any] = {
             'initial_state': self.reality_state_vector,
             'time_steps': time_steps,
             'dt': dt,
@@ -698,6 +698,7 @@ class Reality:
         if self.state != RealityState.ACTIVE:
             raise RuntimeError("Reality not active")
         
+        state: Any
         if component == 'full':
             state = {
                 'quantum': self.reality_state_vector,
@@ -809,8 +810,11 @@ class Reality:
             import_data = self._import_from_hdf5(data)
         elif format == 'consciousness_json':
             import json
-            import_data = json.loads(data.decode())
-            import_data = self._convert_from_json(import_data)
+            json_data = json.loads(data.decode())
+            converted = self._convert_from_json(json_data)
+            if not isinstance(converted, dict):
+                raise ValueError("Invalid JSON format: expected dictionary")
+            import_data = converted
         else:
             raise ValueError(f"Unknown format: {format}")
         
