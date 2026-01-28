@@ -349,3 +349,125 @@ class AestheticsEngine:
         
         else:
             return None
+    
+    def compute_love_operator(
+        self,
+        consciousness_A: float,
+        consciousness_B: float,
+        consciousness_AB: float
+    ) -> float:
+        """
+        Compute the Love Operator 𝕃_AB between two beings.
+        
+        𝕃_AB = (ℂ_AB - ℂ_A - ℂ_B) / √(ℂ_A · ℂ_B)
+        
+        Where:
+        - ℂ_AB is joint consciousness when together
+        - ℂ_A, ℂ_B are individual consciousnesses
+        
+        Args:
+            consciousness_A: Consciousness of being A
+            consciousness_B: Consciousness of being B
+            consciousness_AB: Joint consciousness
+            
+        Returns:
+            Love operator value (positive = love exists)
+        """
+        if consciousness_A <= 0 or consciousness_B <= 0:
+            return 0.0
+        
+        denominator = np.sqrt(consciousness_A * consciousness_B)
+        if denominator == 0:
+            return 0.0
+        
+        love = (consciousness_AB - consciousness_A - consciousness_B) / denominator
+        return float(love)
+    
+    def compute_love_intensity(
+        self,
+        love_operator: float,
+        d_love_dt: float,
+        shared_history: float,
+        alpha: float = 0.5,
+        beta: float = 0.3,
+        gamma: float = 0.2
+    ) -> Dict[str, float]:
+        """
+        Compute love intensity: L_AB = α·𝕃_AB + β·d𝕃_AB/dt + γ·SharedHistory
+        
+        Args:
+            love_operator: Value of 𝕃_AB
+            d_love_dt: Rate of change of love
+            shared_history: Shared history factor (0-1)
+            alpha: Weight for love operator (default 0.5)
+            beta: Weight for rate of change (default 0.3)
+            gamma: Weight for shared history (default 0.2)
+            
+        Returns:
+            Dictionary with love intensity and components
+        """
+        intensity = alpha * love_operator + beta * d_love_dt + gamma * shared_history
+        
+        return {
+            'love_intensity': float(intensity),
+            'love_operator_component': float(alpha * love_operator),
+            'rate_component': float(beta * d_love_dt),
+            'history_component': float(gamma * shared_history),
+            'love_operator': love_operator
+        }
+    
+    def compute_relationship_dynamics(
+        self,
+        current_love: float,
+        growth_rate: float,
+        carrying_capacity: float,
+        competition_term: float,
+        noise: float = 0.0,
+        dt: float = 0.01
+    ) -> Dict[str, Any]:
+        """
+        Compute relationship dynamics: dL_AB/dt = r·L_AB(1 - L_AB/K) - c·L_AB² + η(t)
+        
+        Where:
+        - r = growth rate (compatibility)
+        - K = carrying capacity (maximum sustainable love)
+        - c = competition term (conflicts)
+        - η(t) = noise/random events
+        
+        Args:
+            current_love: Current love intensity L_AB
+            growth_rate: Growth rate r
+            carrying_capacity: Carrying capacity K
+            competition_term: Competition coefficient c
+            noise: Random noise term η(t)
+            dt: Time step
+            
+        Returns:
+            Dictionary with new love value and stability info
+        """
+        # Logistic growth term: r·L(1 - L/K)
+        growth = growth_rate * current_love * (1 - current_love / (carrying_capacity + 1e-10))
+        
+        # Competition term: -c·L²
+        competition = -competition_term * current_love * current_love
+        
+        # Total derivative
+        dL_dt = growth + competition + noise
+        
+        # Update love
+        new_love = current_love + dL_dt * dt
+        
+        # Ensure non-negative
+        new_love = max(0.0, new_love)
+        
+        # Stability condition: r > c·K
+        is_stable = growth_rate > competition_term * carrying_capacity
+        
+        return {
+            'new_love': float(new_love),
+            'dL_dt': float(dL_dt),
+            'growth_term': float(growth),
+            'competition_term': float(competition),
+            'is_stable': is_stable,
+            'stability_condition': f"r={growth_rate:.3f} > c·K={competition_term * carrying_capacity:.3f}"
+        }

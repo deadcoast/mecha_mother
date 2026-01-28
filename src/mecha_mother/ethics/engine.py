@@ -297,4 +297,14 @@ class EthicsEngine:
             
             total_value += w_j * delta_c * discount
         
+        # Add corruption term for killing actions
+        # V(B) = -1 - β·ln(1 + intention_to_kill) where β ≈ 0.3
+        action_type = action.get('type', 'neutral')
+        intention_to_kill = action.get('intention_to_kill', 0.0)
+        
+        if action_type == 'harm' and intention_to_kill > 0:
+            beta = 0.3
+            corruption_term = -1.0 - beta * np.log(1.0 + intention_to_kill)
+            total_value += corruption_term
+        
         return total_value

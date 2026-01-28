@@ -170,15 +170,23 @@ class QuantumRealityEngine:
         initial_state: np.ndarray,
         time_steps: int = 1000,
         dt: float = 0.01,
+        use_mcs_evolution: bool = False,
+        mcs_coupling: float = 0.01,
         **kwargs
     ) -> Dict[str, Any]:
         """
         Simulate quantum evolution forward in time.
         
+        NOTE: The standard Schrödinger equation is a linear approximation of the
+        non-linear MCS master constraint. When use_mcs_evolution=True, the full
+        non-linear evolution is used: i ∂A/∂T = H_MCS[A, Θ] A
+        
         Args:
             initial_state: Initial quantum state
             time_steps: Number of time steps
             dt: Time step size
+            use_mcs_evolution: If True, use non-linear MCS evolution (default: False, uses linear Schrödinger)
+            mcs_coupling: Coupling strength for non-linear MCS term (default: 0.01)
             **kwargs: Additional simulation parameters
             
         Returns:
@@ -188,19 +196,46 @@ class QuantumRealityEngine:
         start_time = time.time()
         
         state = initial_state.copy()
+        state = state / np.linalg.norm(state)  # Normalize
         
-        # Simple unitary evolution: |ψ(t+dt)⟩ = exp(-iH dt/ℏ) |ψ(t)⟩
-        # For simplicity, use a simple Hamiltonian
         n = len(state)
         H = self._build_hamiltonian(n)
         
-        # Evolution operator
-        U = np.eye(n, dtype=complex) - 1j * dt * H / self.constants.hbar
-        
-        # Evolve state
-        for _ in range(time_steps):
-            state = U @ state
-            state = state / np.linalg.norm(state)  # Renormalize
+        if use_mcs_evolution:
+            # Non-linear MCS evolution: i ∂A/∂T = H_MCS[A, Θ] A
+            # H_MCS includes self-consistency feedback: |A|² influences background Θ
+            # Simplified: H_MCS = H_linear + λ * |A|² * K[A]
+            # where K[A] is a self-consistency kernel
+            
+            for _ in range(time_steps):
+                # Linear term: -i H dt / ℏ
+                linear_term = -1j * dt * H @ state / self.constants.hbar
+                
+                # Non-linear MCS term: self-consistency feedback
+                # The field amplitude |A|² influences its own evolution
+                amplitude_sq = np.abs(state)**2
+                
+                # Self-consistency kernel: K[A] = ∫ |A(χ')|² K(χ, χ') dχ'
+                # Simplified as a local interaction: K[A] ≈ |A|²
+                consistency_kernel = amplitude_sq
+                
+                # Non-linear term: λ * |A|² * K[A] * A
+                # This represents how the field's own structure affects evolution
+                nonlinear_term = mcs_coupling * amplitude_sq * consistency_kernel * state
+                nonlinear_term = -1j * dt * nonlinear_term / self.constants.hbar
+                
+                # Combined evolution
+                state = state + linear_term + nonlinear_term
+                state = state / np.linalg.norm(state)  # Renormalize
+        else:
+            # Linear Schrödinger evolution (standard quantum mechanics)
+            # This is the approximation: H_MCS ≈ H (linear, state-independent)
+            U = np.eye(n, dtype=complex) - 1j * dt * H / self.constants.hbar
+            
+            # Evolve state
+            for _ in range(time_steps):
+                state = U @ state
+                state = state / np.linalg.norm(state)  # Renormalize
         
         computation_time = time.time() - start_time
         
@@ -208,7 +243,8 @@ class QuantumRealityEngine:
             'final_state': state,
             'final_time': self.current_time + time_steps * dt,
             'computation_time': computation_time,
-            'time_steps': time_steps
+            'time_steps': time_steps,
+            'evolution_type': 'MCS_nonlinear' if use_mcs_evolution else 'Schrodinger_linear'
         }
     
     def _build_hamiltonian(self, n: int) -> np.ndarray:
