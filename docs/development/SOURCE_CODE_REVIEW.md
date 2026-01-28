@@ -262,30 +262,30 @@ This review systematically compares the implemented source code against the theo
 
 ### 🟡 Medium Priority (Operators) - IMPORTANT MISSING
 
-6. **Qualia Spectrum Formula** (`@GAP06`)
+1. **Qualia Spectrum Formula** (`@GAP06`)
    - **Status**: Use `λₙ = λ₀·(1 - 1/n²)` formula
    - **Code**: `consciousness/engine.py:121-143`
 
-7. **Color Qualia** (`@GAP07`)
+2. **Color Qualia** (`@GAP07`)
    - **Status**: Implement color experience from photon energy
 
-8. **Valence Operator** (`@GAP08`)
+3. **Valence Operator** (`@GAP08`)
    - **Status**: Track `dC/dt` for pain/pleasure
 
-9. **Self-Equation** (`@GAP09`)
+4. **Self-Equation** (`@GAP09`)
    - **Status**: Implement self-model fixed point
 
-10. **Love Operator** (`@GAP10`)
+5. **Love Operator** (`@GAP10`)
     - **Status**: Basic love calculation exists but missing dynamics
 
 ### 🟢 Low Priority (Advanced Features) - NICE TO HAVE
 
-11. **Neural Correlates** (`@GAP11`)
-12. **Transcendent States** (`@GAP12`)
-13. **Art Analysis** (`@GAP13`)
-14. **CDK Classes** (`@GAP14`)
-15. **Ethics Compiler** (`@GAP15`)
-16. **Custom Physical Laws** (`@GAP16`)
+1. **Neural Correlates** (`@GAP11`)
+2. **Transcendent States** (`@GAP12`)
+3. **Art Analysis** (`@GAP13`)
+4. **CDK Classes** (`@GAP14`)
+5. **Ethics Compiler** (`@GAP15`)
+6. **Custom Physical Laws** (`@GAP16`)
 
 ---
 
