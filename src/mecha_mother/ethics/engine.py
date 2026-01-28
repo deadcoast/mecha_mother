@@ -28,7 +28,7 @@ class MoralFieldOperator:
     
     def compute_moral_gradient(
         self,
-        state_vector: np.ndarray,
+        state_vector: Optional[np.ndarray],
         consciousness_field: Any,
         beings: List[Any]
     ) -> np.ndarray:

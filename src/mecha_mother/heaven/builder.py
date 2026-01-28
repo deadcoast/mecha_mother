@@ -138,7 +138,8 @@ class HeavenBuilder:
         )
         
         # Get the actual being object
-        beings = reality.consciousness_field.get_beings()
+        consciousness_field = reality.consciousness_field
+        beings = consciousness_field.get_beings() if consciousness_field is not None else []
         planet_being = next((b for b in beings if b.being_id == planet_being_id), None)
         
         # Optimize planet-wide
@@ -148,12 +149,13 @@ class HeavenBuilder:
         reality.optimize_for_beauty(target_b=9.0)
         
         planet_consciousness = planet_being.consciousness if planet_being else population * 0.01
+        total_consciousness = consciousness_field.total_consciousness() if consciousness_field is not None else 0.0
         metrics = {
             'planet_consciousness': planet_consciousness,
-            'total_consciousness': reality.consciousness_field.total_consciousness(),
+            'total_consciousness': total_consciousness,
             'beauty': reality.aesthetics_engine.average_beauty(),
             'heaven_score': np.sqrt(
-                reality.consciousness_field.total_consciousness() *
+                total_consciousness *
                 reality.aesthetics_engine.average_beauty()
             )
         }
@@ -219,7 +221,8 @@ class HeavenBuilder:
         )
         
         # Get the actual being object
-        beings = reality.consciousness_field.get_beings()
+        consciousness_field = reality.consciousness_field
+        beings = consciousness_field.get_beings() if consciousness_field is not None else []
         civ_being = next((b for b in beings if b.being_id == civ_being_id), None)
         
         # Optimize at civilization scale
@@ -228,12 +231,13 @@ class HeavenBuilder:
         reality.optimize_for_beauty(target_b=9.5)
         
         civ_consciousness = civ_being.consciousness if civ_being else population * 0.02
+        total_consciousness = consciousness_field.total_consciousness() if consciousness_field is not None else 0.0
         metrics = {
             'civilization_consciousness': civ_consciousness,
-            'total_consciousness': reality.consciousness_field.total_consciousness(),
+            'total_consciousness': total_consciousness,
             'beauty': reality.aesthetics_engine.average_beauty(),
             'heaven_score': np.sqrt(
-                reality.consciousness_field.total_consciousness() *
+                total_consciousness *
                 reality.aesthetics_engine.average_beauty()
             ),
             'scale': scale

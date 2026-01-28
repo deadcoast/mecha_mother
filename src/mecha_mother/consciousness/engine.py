@@ -5,20 +5,15 @@ Consciousness Engine - implements the Consciousness Operator ℂ.
 import numpy as np
 from typing import Dict, List, Optional, Tuple, Any
 from scipy.linalg import eig
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class ConsciousnessField:
     """Field of consciousness across the reality."""
     
-    beings: Dict[str, Any] = None
+    beings: Dict[str, Any] = field(default_factory=dict)
     field_amplitude: Optional[np.ndarray] = None
-    
-    def __init__(self):
-        """Initialize empty consciousness field."""
-        self.beings = {}
-        self.field_amplitude = None
     
     def add_being(self, being_id: str, being: Any):
         """Add a conscious being to the field."""
@@ -64,7 +59,7 @@ class ConsciousnessField:
         if not beings:
             return {}
         
-        distribution = {}
+        distribution: Dict[float, int] = {}
         for being in beings:
             if hasattr(being, 'consciousness'):
                 c_val = round(being.consciousness, 1)
@@ -129,7 +124,7 @@ class ConsciousnessOperator:
             Dictionary mapping qualia names to their states and eigenvalues
         """
         # Compute eigenvalues from matrix
-        eigenvalues, eigenvectors = eig(self.C)
+        eigenvalues, eigenvectors = eig(self.C)  # type: ignore[misc]
         
         # Get maximum eigenvalue (λ_0)
         lambda_0 = np.max(np.abs(eigenvalues))
@@ -343,7 +338,7 @@ class ValenceOperator:
         self,
         state: np.ndarray,
         dt: float = 0.01
-    ) -> Dict[str, float]:
+    ) -> Dict[str, Any]:
         """
         Compute pain/pleasure intensity.
         
@@ -530,36 +525,6 @@ class ConsciousnessEngine:
             'optimized_consciousness_field': consciousness_field
         }
     
-    def merge_fields(
-        self,
-        field1: ConsciousnessField,
-        field2: ConsciousnessField,
-        method: str = 'consciousness_alignment'
-    ) -> ConsciousnessField:
-        """
-        Merge two consciousness fields.
-        
-        Args:
-            field1: First field
-            field2: Second field
-            method: Merge method
-            
-        Returns:
-            Merged field
-        """
-        merged = ConsciousnessField()
-        
-        # Combine all beings
-        for being_id, being in field1.beings.items():
-            merged.add_being(being_id, being)
-        
-        for being_id, being in field2.beings.items():
-            # Avoid ID conflicts
-            new_id = f"{being_id}_merged"
-            merged.add_being(new_id, being)
-        
-        return merged
-    
     def compute_self_equation(
         self,
         initial_state: np.ndarray,
@@ -612,6 +577,8 @@ class ConsciousnessEngine:
             return reflected / (np.linalg.norm(reflected) + 1e-10)
         
         # Iterate: Ψ_new = 𝒫 ∘ ℛ ∘ 𝒫⁻¹[Ψ_old]
+        i = 0
+        diff = float('inf')
         for i in range(max_iterations):
             # 𝒫⁻¹ is just identity for this simple projection
             # So: Ψ_new = 𝒫(ℛ(𝒫(Ψ_old)))
@@ -672,7 +639,7 @@ class ConsciousnessEngine:
         Enlightenment is the global minimum of consciousness expectation.
         """
         # Find eigenvector with minimum eigenvalue
-        eigenvalues, eigenvectors = eig(self.operator.C)
+        eigenvalues, eigenvectors = eig(self.operator.C)  # type: ignore[misc]
         idx = np.argmin(np.abs(eigenvalues))
         enlightened = eigenvectors[:, idx]
         return enlightened / np.linalg.norm(enlightened)

@@ -111,7 +111,7 @@ class QuantumRealityEngine:
             Particle ID
         """
         # Standard particle properties
-        standard_props = {
+        standard_props: Dict[str, Dict[str, float]] = {
             'electron': {'mass': 0.511, 'charge': -1, 'spin': 0.5},
             'proton': {'mass': 938.272, 'charge': 1, 'spin': 0.5},
             'neutron': {'mass': 939.565, 'charge': 0, 'spin': 0.5},
@@ -124,7 +124,7 @@ class QuantumRealityEngine:
             # Allow custom particle types with default properties
             standard_props[particle_type] = {'mass': 1.0, 'charge': 0, 'spin': 0}
         
-        base_props = standard_props[particle_type].copy()
+        base_props = dict(standard_props[particle_type])
         base_props.update(properties)
         
         particle_data = {
@@ -154,9 +154,20 @@ class QuantumRealityEngine:
         self.physical_laws.append(PhysicalLaw.QUANTUM_MECHANICS)
         # In full implementation, this would set up the Schrödinger equation
     
-    def get_constant(self, name: str) -> float:
+    def impose_string_theory(self, reality_state: np.ndarray):
+        """Impose string theory physics."""
+        self.physical_laws.append(PhysicalLaw.STRING_THEORY)
+        # In full implementation, this would set up string vibration modes
+    
+    def impose_loop_quantum_gravity(self, reality_state: np.ndarray):
+        """Impose loop quantum gravity."""
+        self.physical_laws.append(PhysicalLaw.LOOP_QUANTUM_GRAVITY)
+        # In full implementation, this would set up spin networks
+    
+    def get_constant(self, name: str) -> Optional[float]:
         """Get physical constant value."""
-        return getattr(self.constants, name, None)
+        value = getattr(self.constants, name, None)
+        return float(value) if value is not None else None
     
     def set_constant(self, name: str, value: float):
         """Set physical constant value."""

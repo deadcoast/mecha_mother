@@ -9,7 +9,7 @@ This task list systematically reviews each document, cross-references its conten
 ## Source Code Review Status (2026-01-25)
 
 **Review Completed:** ✅ All source files examined against design documents  
-**Review Document:** See [SOURCE_CODE_REVIEW.md](SOURCE_CODE_REVIEW.md) for comprehensive findings
+**Review Document:** See [SOURCE_CODE_REVIEW.md](docs/development/SOURCE_CODE_REVIEW.md) for comprehensive findings
 
 ### Review Summary
 - **Files Examined:** All modules in `src/mecha_mother/`

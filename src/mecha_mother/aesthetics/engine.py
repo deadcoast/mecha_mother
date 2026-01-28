@@ -94,7 +94,7 @@ class BeautyOperator:
         beauty_adjusted = beauty * (1.0 / (1.0 + 0.1 * complexity))
         
         # Scale to 0-10
-        eigenvalues, _ = eig(self.B)
+        eigenvalues, _ = eig(self.B)  # type: ignore[misc]
         max_eigenvalue = np.max(np.abs(eigenvalues))
         beauty_scaled = beauty_adjusted * 10 / (max_eigenvalue + 1e-10)
         
@@ -120,7 +120,7 @@ class BeautyOperator:
         Returns:
             Dictionary of beauty patterns
         """
-        eigenvalues, eigenvectors = eig(self.B)
+        eigenvalues, eigenvectors = eig(self.B)  # type: ignore[misc]
         idx = np.argsort(-np.abs(eigenvalues))
         
         patterns = {}
@@ -336,7 +336,7 @@ class AestheticsEngine:
         
         elif art_type == 'visual':
             # Find most beautiful vector
-            eigenvalues, eigenvectors = eig(self.beauty_operator.B)
+            eigenvalues, eigenvectors = eig(self.beauty_operator.B)  # type: ignore[misc]
             idx = np.argmax(np.abs(eigenvalues))
             beautiful_vec = eigenvectors[:, idx]
             

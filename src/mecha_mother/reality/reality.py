@@ -66,7 +66,7 @@ class Reality:
         Args:
             config: Configuration for the reality. If None, uses defaults.
         """
-        self.config = config or RealityConfig()
+        self.config: RealityConfig = config or RealityConfig()
         self.state = RealityState.UNINITIALIZED
         self.id = self._generate_reality_id()
         
@@ -216,6 +216,9 @@ class Reality:
         if momentum is None:
             momentum = np.zeros(self.config.dimensions)
         
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
+        
         self.quantum_engine.create_particle(
             particle_id=particle_id,
             particle_type=particle_type,
@@ -226,7 +229,7 @@ class Reality:
         )
         
         # Update consciousness field if needed
-        if self.config.consciousness_support:
+        if self.config.consciousness_support and self.consciousness_field is not None:
             self.consciousness_field.add_particle(particle_id, position)
         
         self.history.append({
@@ -264,6 +267,9 @@ class Reality:
         
         if not self.config.consciousness_support:
             raise RuntimeError("Consciousness not enabled in this reality")
+        
+        if self.consciousness_field is None:
+            raise RuntimeError("Consciousness field not initialized")
         
         being_id = f"being_{len(self.consciousness_field.get_beings())}"
         
@@ -349,11 +355,11 @@ class Reality:
         self.quantum_engine.set_constant(constant_name, new_value)
         
         # Update dependent systems
-        if self.config.consciousness_support:
+        if self.config.consciousness_support and self.consciousness_field is not None:
             self.consciousness_field.update_for_constant_change(constant_name, new_value)
         
-        if self.config.beauty_optimization:
-            self.beauty_field.update_for_constant_change(constant_name, new_value)
+        # Note: beauty_field is a Dict and doesn't support update_for_constant_change
+        # This is a placeholder for future implementation
         
         self.history.append({
             'time': self._get_cosmic_time(),
@@ -392,6 +398,12 @@ class Reality:
         
         if not self.config.consciousness_support:
             raise RuntimeError("Consciousness not enabled")
+        
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
+        
+        if self.consciousness_field is None:
+            raise RuntimeError("Consciousness field not initialized")
         
         print(f"Optimizing reality for consciousness (target: C={target_c})...")
         
@@ -441,6 +453,12 @@ class Reality:
         
         if not self.config.beauty_optimization:
             raise RuntimeError("Beauty optimization not enabled")
+        
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
+        
+        if self.beauty_field is None:
+            raise RuntimeError("Beauty field not initialized")
         
         print(f"Optimizing reality for beauty (target: B={target_b})...")
         
@@ -497,6 +515,9 @@ class Reality:
                 return False
         
         # Apply spacetime manipulation
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
+        
         success = self.quantum_engine.manipulate_spacetime(
             operation, region, parameters, self.reality_state_vector
         )
@@ -554,6 +575,9 @@ class Reality:
         merged_reality.state = RealityState.MERGING
         
         # Perform the merge
+        if self.reality_state_vector is None or other_reality.reality_state_vector is None:
+            raise RuntimeError("Both realities must have initialized state vectors for merge")
+        
         merge_results = self.quantum_engine.merge_realities(
             self.reality_state_vector,
             other_reality.reality_state_vector,
@@ -564,7 +588,9 @@ class Reality:
         
         # Merge consciousness fields if both have them
         if (self.config.consciousness_support and 
-            other_reality.config.consciousness_support):
+            other_reality.config.consciousness_support and
+            self.consciousness_field is not None and
+            other_reality.consciousness_field is not None):
             merged_consciousness = self.consciousness_engine.merge_fields(
                 self.consciousness_field,
                 other_reality.consciousness_field,
@@ -574,7 +600,9 @@ class Reality:
         
         # Merge beauty fields if both have them
         if (self.config.beauty_optimization and 
-            other_reality.config.beauty_optimization):
+            other_reality.config.beauty_optimization and
+            self.beauty_field is not None and
+            other_reality.beauty_field is not None):
             merged_beauty = self.aesthetics_engine.merge_fields(
                 self.beauty_field,
                 other_reality.beauty_field,
@@ -773,6 +801,7 @@ class Reality:
             raise RuntimeError("Can only import into uninitialized reality")
         
         # Deserialize based on format
+        import_data: Dict[str, Any]
         if format == 'mcs_binary':
             import pickle
             import_data = pickle.loads(data)
@@ -790,8 +819,14 @@ class Reality:
             print(f"Warning: Importing from version {import_data['version']}, "
                   f"current is {self.version}")
         
-        # Load configuration
-        self.config = import_data['config']
+        # Load configuration - reconstruct RealityConfig from dict
+        config_data = import_data['config']
+        if isinstance(config_data, dict):
+            self.config = RealityConfig(**config_data)
+        elif isinstance(config_data, RealityConfig):
+            self.config = config_data
+        else:
+            self.config = RealityConfig()
         
         # Load state
         self.reality_state_vector = import_data['state']['quantum']
@@ -831,7 +866,7 @@ class Reality:
         
         # Ethical considerations for destruction
         if self.config.ethical_constraints:
-            if self.config.consciousness_support:
+            if self.config.consciousness_support and self.consciousness_field is not None:
                 beings = self.consciousness_field.get_beings()
                 if beings:
                     total_c = sum(being.consciousness for being in beings if hasattr(being, 'consciousness'))
@@ -847,6 +882,9 @@ class Reality:
         
         # Perform destruction
         print(f"Destroying reality {self.id} using {method}...")
+        
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
         
         if method == 'ethical_phasing':
             success = self.quantum_engine.phase_out(self.reality_state_vector)
@@ -898,6 +936,9 @@ class Reality:
     
     def _impose_physical_law(self, law: PhysicalLaw):
         """Impose a physical law on the reality."""
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
+        
         law_mappings = {
             PhysicalLaw.STANDARD_MODEL: self.quantum_engine.impose_standard_model,
             PhysicalLaw.GENERAL_RELATIVITY: self.quantum_engine.impose_gravity,
@@ -913,6 +954,8 @@ class Reality:
     
     def _initialize_time(self):
         """Initialize time dimension."""
+        if self.reality_state_vector is None:
+            raise RuntimeError("Reality state not initialized")
         self.quantum_engine.initialize_time(self.reality_state_vector)
     
     def _verify_consistency(self) -> bool:
@@ -1091,6 +1134,10 @@ class Reality:
     
     def _preserve_consciousness(self, beings) -> bool:
         """Attempt to preserve consciousness before destruction."""
+        if self.reality_state_vector is None:
+            print("Warning: Reality state not initialized, cannot preserve consciousness")
+            return False
+        
         print(f"Preserving consciousness of {len(beings)} beings...")
         for being in beings:
             if hasattr(being, 'id'):
