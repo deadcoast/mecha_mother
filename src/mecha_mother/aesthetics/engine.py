@@ -471,3 +471,319 @@ class AestheticsEngine:
             'is_stable': is_stable,
             'stability_condition': f"r={growth_rate:.3f} > c·K={competition_term * carrying_capacity:.3f}"
         }
+
+    def analyze_love(
+        self,
+        person_a_traits: Dict[str, float],
+        person_b_traits: Dict[str, float]
+    ) -> Dict[str, Any]:
+        """
+        Analyze love potential between two people using MCS theory.
+        
+        Love is defined as: consciousness of two beings together exceeds
+        the sum of their individual consciousnesses.
+        
+        L_AB = (C_AB - C_A - C_B) / sqrt(C_A * C_B)
+        
+        Args:
+            person_a_traits: Personality traits for person A
+            person_b_traits: Personality traits for person B
+            
+        Returns:
+            Dictionary with love analysis results
+        """
+        # Convert traits to vectors
+        vec_a = self._traits_to_vector(person_a_traits)
+        vec_b = self._traits_to_vector(person_b_traits)
+        
+        # Individual consciousness (simplified)
+        C_A = float(np.linalg.norm(vec_a))
+        C_B = float(np.linalg.norm(vec_b))
+        
+        # Joint consciousness (with interaction)
+        # Good relationship: complementarity + similarity
+        similarity = float(np.abs(np.dot(vec_a, vec_b.conj())) / (C_A * C_B + 1e-10))
+        complementarity = 1.0 - abs(similarity - 0.5)  # Best at 0.5
+        
+        # Joint consciousness exceeds sum when complementarity is good
+        C_AB = C_A + C_B + 2.0 * np.sqrt(C_A * C_B) * complementarity * similarity
+        
+        # Love measure: L = (C_AB - C_A - C_B) / sqrt(C_A * C_B)
+        denominator = np.sqrt(C_A * C_B)
+        if denominator > 0:
+            L = float((C_AB - C_A - C_B) / denominator)
+        else:
+            L = 0.0
+        
+        # Classify love type based on symmetry patterns
+        if similarity > 0.8:
+            love_type = "Companionate/Parental"
+        elif complementarity > 0.7 and similarity > 0.4:
+            love_type = "Romantic"
+        elif complementarity > 0.6:
+            love_type = "Platonic"
+        else:
+            love_type = "Weak"
+        
+        # Predict relationship success using logistic model
+        success_prob = 1.0 / (1.0 + np.exp(-(L - 0.5) * 5))
+        
+        return {
+            'love_potential': L,
+            'love_type': love_type,
+            'success_probability': float(success_prob),
+            'similarity': similarity,
+            'complementarity': complementarity,
+            'individual_consciousness_a': C_A,
+            'individual_consciousness_b': C_B,
+            'joint_consciousness': float(C_AB),
+            'consciousness_synergy': float(C_AB - C_A - C_B),
+            'recommendation': self._get_love_recommendation(L, love_type)
+        }
+    
+    def _traits_to_vector(self, traits: Dict[str, float]) -> np.ndarray:
+        """
+        Convert personality traits to quantum state vector.
+        
+        Uses Big Five personality traits plus additional factors.
+        Real part = trait value, Imaginary part = trait importance.
+        """
+        # Big Five + additional factors
+        trait_names = [
+            'openness', 'conscientiousness', 'extraversion',
+            'agreeableness', 'neuroticism', 'intelligence',
+            'creativity', 'kindness', 'humor'
+        ]
+        
+        vec = np.zeros(len(trait_names), dtype=complex)
+        for i, name in enumerate(trait_names):
+            if name in traits:
+                value = traits[name]
+            else:
+                value = 0.5  # Default
+            # Real part = trait value, imaginary part = trait importance
+            vec[i] = value + 0.1j * value
+        
+        norm = np.linalg.norm(vec)
+        return vec / norm if norm > 0 else vec
+    
+    def _get_love_recommendation(self, L: float, love_type: str) -> str:
+        """Get recommendation based on love analysis."""
+        if L > 1.0:
+            return "Highly compatible - pursue relationship"
+        elif L > 0.5:
+            return "Good potential - worth exploring"
+        elif L > 0.0:
+            return "Moderate potential - proceed with caution"
+        elif L > -0.5:
+            return "Low compatibility - may require significant work"
+        else:
+            return "Poor match - not recommended"
+    
+    def compute_awe(
+        self,
+        beauty_rate: float,
+        consciousness_rate: float,
+        awe_threshold: float = 2.0,
+        consciousness_threshold: float = 1.5
+    ) -> Dict[str, Any]:
+        """
+        Compute awe/wonder experience.
+        
+        Awe occurs when:
+        dB/dt > theta_awe AND dC/dt > theta_C
+        
+        Intensity: I_awe = sqrt((dB/dt)^2 + (dC/dt)^2)
+        
+        Args:
+            beauty_rate: Rate of beauty change (dB/dt)
+            consciousness_rate: Rate of consciousness change (dC/dt)
+            awe_threshold: Threshold for beauty rate
+            consciousness_threshold: Threshold for consciousness rate
+            
+        Returns:
+            Dictionary with awe analysis
+        """
+        # Check if awe conditions are met
+        is_awe = beauty_rate > awe_threshold and consciousness_rate > consciousness_threshold
+        
+        # Compute intensity
+        intensity = np.sqrt(beauty_rate**2 + consciousness_rate**2)
+        
+        # Classify experience type
+        if is_awe:
+            if intensity > 5.0:
+                experience_type = "Transcendent"
+            elif intensity > 3.0:
+                experience_type = "Profound"
+            else:
+                experience_type = "Mild"
+        else:
+            experience_type = "None"
+        
+        return {
+            'is_awe': is_awe,
+            'intensity': float(intensity),
+            'beauty_rate': beauty_rate,
+            'consciousness_rate': consciousness_rate,
+            'experience_type': experience_type,
+            'thresholds': {
+                'awe': awe_threshold,
+                'consciousness': consciousness_threshold
+            }
+        }
+    
+    def compute_peak_experience_probability(
+        self,
+        self_state: np.ndarray,
+        beauty_state: np.ndarray,
+        beauty_value: float,
+        consciousness_value: float,
+        temperature: float = 10.0
+    ) -> Dict[str, Any]:
+        """
+        Compute probability of peak/mystical experience.
+        
+        Peak experiences occur when consciousness aligns with beauty eigenvector:
+        |<psi_self | psi_beauty>|^2 > 0.9
+        
+        Probability: P_peak = 1 - exp(-B * C / T)
+        
+        Args:
+            self_state: Self state vector
+            beauty_state: Beauty eigenvector
+            beauty_value: Current beauty level
+            consciousness_value: Current consciousness level
+            temperature: "Spiritual temperature" parameter
+            
+        Returns:
+            Dictionary with peak experience analysis
+        """
+        # Ensure vectors are normalized
+        self_norm = self_state / (np.linalg.norm(self_state) + 1e-10)
+        beauty_norm = beauty_state / (np.linalg.norm(beauty_state) + 1e-10)
+        
+        # Alignment measure
+        alignment = float(np.abs(np.dot(self_norm.conj(), beauty_norm))**2)
+        
+        # Peak probability
+        probability = 1.0 - np.exp(-beauty_value * consciousness_value / temperature)
+        
+        # Is peak experience happening?
+        is_peak = alignment > 0.9
+        
+        return {
+            'alignment': alignment,
+            'probability': float(probability),
+            'is_peak_experience': is_peak,
+            'beauty': beauty_value,
+            'consciousness': consciousness_value,
+            'temperature': temperature,
+            'intensity': float(alignment * probability)
+        }
+    
+    def generate_beautiful_art(
+        self,
+        art_type: str = 'visual',
+        complexity: float = 0.5
+    ) -> Any:
+        """
+        Generate art optimized for beauty.
+        
+        Args:
+            art_type: Type of art ('visual', 'poetic', 'musical')
+            complexity: Complexity level (0-1)
+            
+        Returns:
+            Generated artwork
+        """
+        n = self.beauty_operator.dim
+        
+        if art_type == 'visual':
+            # Find most beautiful vector (largest eigenvalue eigenvector)
+            eigenvalues, eigenvectors = eig(self.beauty_operator.B)
+            idx = np.argmax(np.abs(eigenvalues))
+            beautiful_vec = eigenvectors[:, idx]
+            
+            # Add controlled noise for interest
+            noise = np.random.randn(n) * (1 - complexity) * 0.1
+            result_vec = beautiful_vec + noise
+            result_vec = result_vec / (np.linalg.norm(result_vec) + 1e-10)
+            
+            return {
+                'type': 'visual',
+                'vector': result_vec,
+                'beauty_score': self.beauty_operator.compute_beauty(result_vec),
+                'complexity': complexity
+            }
+        
+        elif art_type == 'poetic':
+            # Generate beautiful text patterns
+            patterns = [
+                "Golden light through fractal leaves",
+                "Symmetry of breath and tide",
+                "Harmonic convergence of souls",
+                "Infinite recursion of love",
+                "Phi-spiraled galaxies in eyes",
+                "Self-similar whispers through time",
+                "Eigenvectors of eternal beauty",
+                "Consciousness entangled like vines",
+            ]
+            
+            # Weight by beauty scores
+            scores = np.array([self.beauty_operator.compute_beauty(p) for p in patterns])
+            probs = np.exp(scores) / np.sum(np.exp(scores))
+            selected = np.random.choice(patterns, p=probs)
+            
+            return {
+                'type': 'poetic',
+                'text': selected,
+                'beauty_score': self.beauty_operator.compute_beauty(selected)
+            }
+        
+        elif art_type == 'musical':
+            # Generate beautiful frequency ratios
+            # Beautiful music uses simple integer ratios (harmonic series)
+            ratios = [1/1, 2/1, 3/2, 4/3, 5/4, 8/5, 9/8]
+            weights = [0.3, 0.2, 0.15, 0.15, 0.1, 0.05, 0.05]
+            
+            notes = []
+            for _ in range(8):
+                ratio = np.random.choice(ratios, p=weights)
+                freq = 440 * ratio  # A4 reference
+                notes.append(freq)
+            
+            return {
+                'type': 'musical',
+                'frequencies': notes,
+                'ratios': [n / 440 for n in notes],
+                'harmony_score': self._compute_harmony_score(notes)
+            }
+        
+        return None
+    
+    def _compute_harmony_score(self, frequencies: List[float]) -> float:
+        """Compute harmonic beauty of a set of frequencies."""
+        if len(frequencies) < 2:
+            return 1.0
+        
+        # Simple integer ratios are more harmonious
+        harmony = 0.0
+        count = 0
+        
+        for i in range(len(frequencies)):
+            for j in range(i + 1, len(frequencies)):
+                ratio = frequencies[i] / frequencies[j]
+                if ratio < 1:
+                    ratio = 1 / ratio
+                
+                # Check how close to simple ratio
+                for num in [1, 2, 3, 4, 5]:
+                    for den in [1, 2, 3, 4, 5]:
+                        simple_ratio = num / den
+                        if abs(ratio - simple_ratio) < 0.1:
+                            harmony += 1.0 / (num + den)
+                            break
+                count += 1
+        
+        return harmony / count if count > 0 else 0.0

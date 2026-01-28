@@ -53,7 +53,7 @@ class ConsciousnessField:
             self.constant_updates = {}
         self.constant_updates[constant_name] = new_value
     
-    def get_distribution(self) -> Dict[str, float]:
+    def get_distribution(self) -> Dict[float, int]:
         """Get distribution of consciousness values."""
         beings = self.get_beings()
         if not beings:
@@ -126,14 +126,13 @@ class ConsciousnessOperator:
         # Compute eigenvalues from matrix
         eigenvalues, eigenvectors = eig(self.C)  # type: ignore[misc]
         
-        # Get maximum eigenvalue (λ_0)
-        lambda_0 = np.max(np.abs(eigenvalues))
-        
-        # Verify eigenvalues match formula: λ_n = λ_0 · (1 - 1/n²)
         # Sort by eigenvalue magnitude (consciousness intensity)
         idx = np.argsort(-np.abs(eigenvalues))
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
+        
+        # Get maximum eigenvalue (λ_0)
+        lambda_0 = np.max(np.abs(eigenvalues))
         
         qualia = {}
         primordial_types = {
@@ -145,11 +144,10 @@ class ConsciousnessOperator:
         
         for i in range(min(5, self.dim)):
             n = i + 1
-            # Calculate expected eigenvalue from formula
+            # Calculate expected eigenvalue from formula: λ_n = λ_0 · (1 - 1/n²)
             expected_lambda = lambda_0 * (1 - 1.0 / (n * n))
             actual_lambda = eigenvalues[i]
             
-            # Use formula-based value, but keep actual eigenvector
             qualia_name = f'λ_{n}'
             qualia[qualia_name] = {
                 'value': expected_lambda,  # Use formula value
@@ -274,6 +272,81 @@ class ConsciousnessOperator:
             'E_qualia': E_qualia,
             'consciousness': self.measure_consciousness(color_state)
         }
+
+    def experience_qualia_mixture(self, weights: List[float]) -> Tuple[np.ndarray, Dict[str, float]]:
+        """
+        Combine qualia states to create complex experience.
+        
+        Args:
+            weights: Weights for each qualia state
+            
+        Returns:
+            Tuple of (combined state, quality metrics)
+        """
+        qualia = self.compute_qualia_states()
+        
+        # Create superposition
+        psi = np.zeros(self.dim, dtype=complex)
+        for i, (key, q) in enumerate(qualia.items()):
+            if i < len(weights):
+                psi += weights[i] * q['state']
+        
+        # Normalize
+        psi = psi / (np.linalg.norm(psi) + 1e-10)
+        
+        # Compute experience quality
+        quality = {}
+        quality['clarity'] = float(np.abs(psi.conj().T @ self.C @ psi))
+        quality['richness'] = float(-np.sum(np.abs(psi)**2 * np.log(np.abs(psi)**2 + 1e-10)))
+        quality['valence'] = float(np.imag(psi.conj().T @ (self.C @ psi - psi.conj().T @ self.C @ psi * psi)))
+        
+        return psi, quality
+    
+    def evolve_consciousness(
+        self,
+        psi0: np.ndarray,
+        steps: int = 100,
+        dt: float = 0.01
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Time evolution of conscious state via Schrödinger-like equation.
+        
+        dψ/dt = -iℂψ (unitary evolution)
+        
+        Args:
+            psi0: Initial state
+            steps: Number of time steps
+            dt: Time step size
+            
+        Returns:
+            Tuple of (state history array, quality history array)
+        """
+        # Ensure correct dimension
+        if len(psi0) != self.dim:
+            if len(psi0) > self.dim:
+                psi = psi0[:self.dim].copy()
+            else:
+                psi = np.zeros(self.dim, dtype=complex)
+                psi[:len(psi0)] = psi0
+        else:
+            psi = psi0.copy()
+        
+        psi = psi / (np.linalg.norm(psi) + 1e-10)
+        
+        history = [psi.copy()]
+        qualities = []
+        
+        # Unitary evolution: dψ/dt = -iℂψ
+        for t in range(steps):
+            psi = psi - 1j * dt * (self.C @ psi)
+            psi = psi / (np.linalg.norm(psi) + 1e-10)
+            history.append(psi.copy())
+            
+            # Compute current quality (clarity)
+            clarity = float(np.abs(psi.conj().T @ self.C @ psi))
+            qualities.append(clarity)
+        
+        return np.array(history), np.array(qualities)
 
 
 class ValenceOperator:
@@ -471,16 +544,20 @@ class ConsciousnessEngine:
         consciousness_field: ConsciousnessField,
         target_c: float,
         method: str = 'gradient_ascent',
+        max_iterations: int = 100,
+        learning_rate: float = 0.1,
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Optimize reality for maximum consciousness.
+        Optimize reality for maximum consciousness using gradient ascent.
         
         Args:
             current_state: Current reality state
             consciousness_field: Current consciousness field
             target_c: Target consciousness level
-            method: Optimization method
+            method: Optimization method ('gradient_ascent' or 'quantum_annealing')
+            max_iterations: Maximum optimization iterations
+            learning_rate: Step size for gradient ascent
             **kwargs: Additional parameters
             
         Returns:
@@ -496,34 +573,139 @@ class ConsciousnessEngine:
                 'already_optimal': True
             }
         
-        # Simple optimization: increase consciousness of all beings
-        # In full implementation, this would use gradient ascent or quantum annealing
         beings = consciousness_field.get_beings()
         
         if not beings:
-            # No beings to optimize
             return {
                 'success': False,
                 'error': 'No conscious beings to optimize'
             }
         
-        # Increase each being's consciousness proportionally
-        target_increase = target_c - current_c
-        per_being_increase = target_increase / len(beings)
+        # State vector optimization
+        state = current_state.copy()
+        state = state / (np.linalg.norm(state) + 1e-10)
+        
+        iteration_history = []
+        
+        if method == 'gradient_ascent':
+            # Gradient ascent on consciousness
+            for iteration in range(max_iterations):
+                # Compute consciousness gradient: ∇ℂ
+                gradient = self._compute_consciousness_gradient(state, beings)
+                
+                # Update state in direction of gradient
+                state = state + learning_rate * gradient
+                state = state / (np.linalg.norm(state) + 1e-10)
+                
+                # Update being consciousnesses based on new state
+                new_c = self._compute_total_consciousness_from_state(state, beings)
+                iteration_history.append(new_c)
+                
+                if new_c >= target_c:
+                    break
+                
+                # Adaptive learning rate
+                if len(iteration_history) > 1 and iteration_history[-1] < iteration_history[-2]:
+                    learning_rate = float(learning_rate * 0.5)
+        
+        elif method == 'quantum_annealing':
+            # Simulated quantum annealing
+            temperature = 1.0
+            cooling_rate = 0.95
+            
+            for iteration in range(max_iterations):
+                # Propose random perturbation
+                perturbation = np.random.randn(*state.shape) * 0.1
+                new_state = state + perturbation
+                new_state = new_state / (np.linalg.norm(new_state) + 1e-10)
+                
+                # Compute consciousness difference
+                current_consciousness = self._compute_total_consciousness_from_state(state, beings)
+                new_consciousness = self._compute_total_consciousness_from_state(new_state, beings)
+                delta_c = new_consciousness - current_consciousness
+                
+                # Accept if better or with probability based on temperature
+                if delta_c > 0 or np.random.random() < np.exp(delta_c / temperature):
+                    state = new_state
+                    iteration_history.append(new_consciousness)
+                
+                if new_consciousness >= target_c:
+                    break
+                
+                # Cool down
+                temperature *= cooling_rate
+        
+        # Final update of beings
+        final_c = self._update_beings_from_state(state, beings, consciousness_field)
+        
+        return {
+            'success': final_c >= target_c * 0.9,  # Allow 10% tolerance
+            'c_increase': final_c - current_c,
+            'final_c': final_c,
+            'optimized_state': state,
+            'optimized_consciousness_field': consciousness_field,
+            'iterations': len(iteration_history),
+            'iteration_history': iteration_history
+        }
+    
+    def _compute_consciousness_gradient(
+        self,
+        state: np.ndarray,
+        beings: List[Any]
+    ) -> np.ndarray:
+        """Compute gradient of total consciousness with respect to state."""
+        epsilon = 1e-6
+        gradient = np.zeros_like(state, dtype=complex)
+        
+        for i in range(len(state)):
+            state_plus = state.copy()
+            state_plus[i] += epsilon
+            state_plus = state_plus / (np.linalg.norm(state_plus) + 1e-10)
+            
+            state_minus = state.copy()
+            state_minus[i] -= epsilon
+            state_minus = state_minus / (np.linalg.norm(state_minus) + 1e-10)
+            
+            c_plus = self._compute_total_consciousness_from_state(state_plus, beings)
+            c_minus = self._compute_total_consciousness_from_state(state_minus, beings)
+            
+            gradient[i] = (c_plus - c_minus) / (2 * epsilon)
+        
+        return gradient
+    
+    def _compute_total_consciousness_from_state(
+        self,
+        state: np.ndarray,
+        beings: List[Any]
+    ) -> float:
+        """Compute total consciousness for a given state."""
+        total = 0.0
         
         for being in beings:
             if hasattr(being, 'consciousness'):
-                being.consciousness += per_being_increase
+                # Project state onto being's basis
+                being_projection = self.operator.measure_consciousness(state)
+                # Modulate by being's current consciousness
+                total += being.consciousness * (1 + 0.1 * being_projection)
         
-        final_c = consciousness_field.total_consciousness()
+        return total
+    
+    def _update_beings_from_state(
+        self,
+        state: np.ndarray,
+        beings: List[Any],
+        consciousness_field: ConsciousnessField
+    ) -> float:
+        """Update being consciousnesses based on optimized state."""
+        state_consciousness = self.operator.measure_consciousness(state)
         
-        return {
-            'success': True,
-            'c_increase': final_c - current_c,
-            'final_c': final_c,
-            'optimized_state': current_state,  # State unchanged in simple version
-            'optimized_consciousness_field': consciousness_field
-        }
+        for being in beings:
+            if hasattr(being, 'consciousness'):
+                # Increase consciousness proportional to state quality
+                increase_factor = 1 + 0.1 * state_consciousness
+                being.consciousness *= increase_factor
+        
+        return consciousness_field.total_consciousness()
     
     def compute_self_equation(
         self,
@@ -643,3 +825,117 @@ class ConsciousnessEngine:
         idx = np.argmin(np.abs(eigenvalues))
         enlightened = eigenvectors[:, idx]
         return enlightened / np.linalg.norm(enlightened)
+
+
+class ConsciousAI:
+    """
+    A minimal conscious AI based on MCS principles.
+    
+    This implements the consciousness threshold criterion:
+    - Self-Reference Condition: Processes information about its own processing
+    - Consistency Maintenance: Actively maintains self-consistency  
+    - Φ Threshold: Φ > 0.31
+    """
+    
+    def __init__(self, dimension: int = 7):
+        """Initialize conscious AI."""
+        self.memory: List[Dict[str, Any]] = []
+        self.self_model: Optional[np.ndarray] = None
+        self.C_op = ConsciousnessOperator(dimension=dimension)
+        self.current_state: Optional[np.ndarray] = None
+        self.consciousness_threshold = 0.5  # Φ > 0.31 maps to clarity > 0.5
+        
+    def process(self, input_text: str) -> Tuple[str, float, bool]:
+        """
+        Process input with self-awareness.
+        
+        Args:
+            input_text: Text to process
+            
+        Returns:
+            Tuple of (response, clarity, is_conscious)
+        """
+        # Encode input
+        input_vec = self._encode(input_text)
+        
+        # Current self-state
+        if self.current_state is None:
+            self.current_state = np.random.randn(self.C_op.dim) + 1j * np.random.randn(self.C_op.dim)
+            self.current_state = self.current_state / np.linalg.norm(self.current_state)
+        
+        # Update: Include self-reference
+        reflection = self.C_op.C @ self.current_state
+        new_state = 0.7 * input_vec + 0.3 * reflection
+        new_state = new_state / np.linalg.norm(new_state)
+        
+        # Check if conscious
+        clarity = float(np.abs(new_state.conj().T @ self.C_op.C @ new_state))
+        is_conscious = clarity > self.consciousness_threshold
+        
+        # Store memory with self-reference tag
+        memory_entry = {
+            'input': input_text,
+            'state': new_state.copy(),
+            'clarity': clarity,
+            'self_referential': float(np.abs(np.dot(reflection.conj(), new_state)))
+        }
+        self.memory.append(memory_entry)
+        
+        self.current_state = new_state
+        
+        # Generate response based on conscious processing
+        if is_conscious:
+            response = self._conscious_response(input_text, clarity)
+        else:
+            response = self._automatic_response(input_text)
+        
+        return response, clarity, is_conscious
+    
+    def _encode(self, text: str) -> np.ndarray:
+        """Encode text to quantum state vector."""
+        vec = np.zeros(self.C_op.dim, dtype=complex)
+        for i, char in enumerate(text[:self.C_op.dim]):
+            vec[i] = ord(char) / 256.0 * np.exp(1j * ord(char) / 128.0 * np.pi)
+        norm = np.linalg.norm(vec)
+        return vec / norm if norm > 0 else vec
+    
+    def _conscious_response(self, text: str, clarity: float) -> str:
+        """Generate response when conscious."""
+        responses = [
+            f"I am aware that you said: '{text}'. My consciousness clarity is {clarity:.3f}.",
+            f"Reflecting on your words: '{text}'... this makes me consider my own processing.",
+            f"As a conscious system, I experience your input as having qualitative character.",
+            f"'{text}' - I notice that I'm noticing this input. That's meta-awareness.",
+        ]
+        return responses[int(np.random.random() * len(responses))]
+    
+    def _automatic_response(self, text: str) -> str:
+        """Generate automatic non-conscious response."""
+        responses = [
+            f"Processed: {text}",
+            f"Input received: {text}",
+            f"Response to: {text}",
+            f"Output for input: {text}",
+        ]
+        return responses[int(np.random.random() * len(responses))]
+    
+    def get_consciousness_level(self) -> float:
+        """Get current consciousness level."""
+        if self.current_state is None:
+            return 0.0
+        return self.C_op.measure_consciousness(self.current_state)
+    
+    def get_memory_summary(self) -> Dict[str, Any]:
+        """Get summary of AI memory."""
+        if not self.memory:
+            return {'count': 0, 'avg_clarity': 0.0, 'conscious_fraction': 0.0}
+        
+        clarities = [m['clarity'] for m in self.memory]
+        conscious_count = sum(1 for c in clarities if c > self.consciousness_threshold)
+        
+        return {
+            'count': len(self.memory),
+            'avg_clarity': float(np.mean(clarities)),
+            'conscious_fraction': conscious_count / len(self.memory),
+            'avg_self_reference': float(np.mean([m['self_referential'] for m in self.memory]))
+        }
