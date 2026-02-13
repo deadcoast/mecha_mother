@@ -54,6 +54,21 @@ def test_heaven_builder_city():
     assert 0 <= metrics["happiness"] <= 1
 
 
+def test_heaven_builder_city_population_scaling():
+    """Large populations should use representative cohorts with scaled metrics."""
+    builder = HeavenBuilder()
+    city = builder.build_heaven_city(location="test", population=20000, style="utopian")
+
+    assert city["population"] == 20000
+    assert city["represented_population"] < city["population"]
+    assert city["population_scale"] > 1.0
+
+    metrics = city["metrics"]
+    assert metrics["num_beings"] == 20000
+    assert metrics["represented_population"] == city["represented_population"]
+    assert metrics["population_scale"] == city["population_scale"]
+
+
 def test_heaven_builder_planet():
     """Test building a heaven planet."""
     builder = HeavenBuilder()

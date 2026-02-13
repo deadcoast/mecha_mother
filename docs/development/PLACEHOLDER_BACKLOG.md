@@ -38,7 +38,7 @@ All currently tracked P0 items are implemented and validated.
   - [x] Add stability/regression tests over multiple steps.
   - [ ] Calibrate parameter defaults against documented target regimes.
 
-2. `src/mecha_mother/aesthetics/engine.py`
+1. `src/mecha_mother/aesthetics/engine.py`
 - Some high-level routines still use heuristic consciousness proxies.
 - Acceptance:
   - [x] Replace proxy constants with derived values from field/operator where available.
@@ -52,7 +52,7 @@ All currently tracked P0 items are implemented and validated.
 - Acceptance:
   - Convert to explicit comments or targeted handling where ambiguity exists.
 
-2. Remove stale “simplified” comments once upgraded to concrete behavior.
+1. Remove stale “simplified” comments once upgraded to concrete behavior.
 
 ## Verification Command Set
 - `uv run ruff check src tests`

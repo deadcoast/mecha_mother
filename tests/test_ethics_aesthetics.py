@@ -19,6 +19,25 @@ def test_ethics_engine():
     assert isinstance(value, float)
 
 
+def test_ethics_engine_moral_value_gradient_signs():
+    """Gradient-based moral value should reward help and penalize harm."""
+    engine = EthicsEngine()
+    beings = [{"type": "human", "weight": 1.0}]
+    baseline = np.array([1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+
+    help_action = {"type": "help", "effect_vector": np.array([0.2, 0.1, 0.0])}
+    harm_action = {"type": "harm", "effect_vector": np.array([-0.2, -0.1, 0.0])}
+
+    help_value = engine.decision_engine.compute_moral_value(
+        help_action, beings, current_state=baseline, time_horizon=20
+    )
+    harm_value = engine.decision_engine.compute_moral_value(
+        harm_action, beings, current_state=baseline, time_horizon=20
+    )
+
+    assert help_value > harm_value
+
+
 def test_ethical_decision_engine():
     """Test ethical decision engine."""
     engine = EthicalDecisionEngine()

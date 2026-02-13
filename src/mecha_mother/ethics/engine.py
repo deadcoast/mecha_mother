@@ -391,71 +391,112 @@ class EthicalDecisionEngine:
         if not beings_dicts:
             return 0.0
 
-        # Compute total consciousness for weighting
-        total_c = sum(b.get("weight", 1.0) for b in beings_dicts)
-        if total_c == 0:
-            return 0.0
+        # Use a deterministic baseline state if one is not provided.
+        if current_state is None:
+            n = self.moral_operator.dim
+            baseline_state = np.zeros(n, dtype=complex)
+            baseline_state[0] = 1.0 + 0.0j
+        else:
+            baseline_state = np.asarray(current_state, dtype=complex)
+            norm = np.linalg.norm(baseline_state)
+            baseline_state = baseline_state / (norm + 1e-10)
 
-        # If we have a state, use full simulation
-        if current_state is not None:
-            future_states = self.simulate_future(
-                current_state, action, beings_dicts, time_horizon
-            )
+        moral_gradient = self.moral_operator.compute_moral_gradient(
+            baseline_state, beings_dicts
+        )
+        action_delta = self._action_delta_state(action, len(baseline_state))
+        directional_term = float(np.real(np.vdot(moral_gradient, action_delta)))
 
-            total_value = 0.0
-            initial_c = self.moral_operator.total_consciousness(
-                current_state, beings_dicts
-            )
+        delta_global = self._global_consciousness_delta(
+            action=action,
+            beings=beings_dicts,
+            baseline_state=baseline_state,
+            time_horizon=time_horizon,
+            has_explicit_state=current_state is not None,
+        )
+        delta_global += 0.5 * float(np.mean(np.real(action_delta)))
 
-            for t, state in enumerate(future_states):
-                C_t = self.moral_operator.total_consciousness(state, beings_dicts)
-                delta_c = C_t - initial_c
-                discount = np.exp(-self.moral_discount_rate * t)
-                total_value += delta_c * discount
+        total_value = directional_term * delta_global + delta_global
 
-            # Add corruption term
-            intention_to_kill = action.get("intention_to_kill", 0.0)
-            if intention_to_kill > 0:
-                corruption_term = -1.0 - self.corruption_coefficient * np.log(
-                    1.0 + intention_to_kill
-                )
-                total_value += corruption_term
-
-            return total_value
-
-        # Fallback: estimate based on action type
-        total_value = 0.0
-        action_type = action.get("type", "neutral")
-
-        for being in beings_dicts:
-            w_j = being.get("weight", 1.0) / total_c
-
-            # Estimate consciousness change based on action effect
-            effect = action.get("effect_vector", None)
-            if effect is not None and len(effect) > 0:
-                delta_c = np.mean(np.real(effect)) * 2.0  # Scale factor
-            elif action_type == "help":
-                delta_c = 1.0
-            elif action_type == "harm":
-                delta_c = -2.0
-            else:
-                delta_c = 0.0
-
-            # Time discounting
-            t_j = action.get("time_until_effect", 0)
-            discount = np.exp(-self.moral_discount_rate * t_j)
-
-            total_value += w_j * delta_c * discount
-
-        # Corruption term for killing
-        intention_to_kill = action.get("intention_to_kill", 0.0)
-        if action_type == "harm" and intention_to_kill > 0:
+        # Corruption term for explicit intent to kill.
+        intention_to_kill = float(action.get("intention_to_kill", 0.0))
+        if intention_to_kill > 0:
             corruption_term = -1.0 - self.corruption_coefficient * np.log(
                 1.0 + intention_to_kill
             )
-            total_value += corruption_term
+            total_value += float(corruption_term)
 
-        return total_value
+        return float(total_value)
+
+    def _action_delta_state(self, action: Dict[str, Any], n_dim: int) -> np.ndarray:
+        """Convert an action into a normalized state perturbation ΔΨ."""
+        effect = action.get("effect_vector")
+        if effect is not None and len(effect) > 0:
+            delta = np.asarray(effect, dtype=complex)
+        else:
+            action_type = str(action.get("type", "neutral"))
+            if action_type == "help":
+                delta = np.full(n_dim, 0.05, dtype=complex)
+            elif action_type == "harm":
+                delta = np.full(n_dim, -0.08, dtype=complex)
+            elif action_type == "inaction":
+                delta = np.full(n_dim, -0.01, dtype=complex)
+            else:
+                delta = np.zeros(n_dim, dtype=complex)
+
+        if len(delta) != n_dim:
+            if len(delta) > n_dim:
+                delta = delta[:n_dim]
+            else:
+                padded = np.zeros(n_dim, dtype=complex)
+                padded[: len(delta)] = delta
+                delta = padded
+
+        norm = np.linalg.norm(delta)
+        return delta / (norm + 1e-10)
+
+    def _global_consciousness_delta(
+        self,
+        action: Dict[str, Any],
+        beings: List[Dict[str, Any]],
+        baseline_state: np.ndarray,
+        time_horizon: int,
+        has_explicit_state: bool,
+    ) -> float:
+        """Estimate ΔC_global under an action."""
+        total_c = float(sum(b.get("weight", 1.0) for b in beings))
+        if total_c <= 0:
+            return 0.0
+
+        if has_explicit_state:
+            future_states = self.simulate_future(
+                baseline_state, action, beings, max(1, int(time_horizon))
+            )
+            initial_c = self.moral_operator.total_consciousness(baseline_state, beings)
+            delta_c = 0.0
+            for t, state in enumerate(future_states):
+                c_t = self.moral_operator.total_consciousness(state, beings)
+                discount = np.exp(-self.moral_discount_rate * t)
+                delta_c += (c_t - initial_c) * discount
+            return float(delta_c)
+
+        action_type = str(action.get("type", "neutral"))
+        if action_type == "help":
+            base_delta = 1.0
+        elif action_type == "harm":
+            base_delta = -1.0
+        elif action_type == "inaction":
+            base_delta = -0.05
+        else:
+            base_delta = 0.0
+
+        effect = action.get("effect_vector")
+        if effect is not None and len(effect) > 0:
+            base_delta += float(np.mean(np.real(np.asarray(effect))))
+
+        t_j = float(action.get("time_until_effect", 0.0))
+        discount = np.exp(-self.moral_discount_rate * t_j)
+        return float(base_delta * discount)
 
     def solve_trolley_problem(
         self,

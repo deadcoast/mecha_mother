@@ -74,6 +74,114 @@ class QuantumRealityEngine:
             "string_phase": 0.03,
             "lqg_phase_twist": 0.02,
         }
+        self.constraint_aspect_weights: Dict[str, float] = {
+            "locality": 0.7,
+            "curvature": 0.7,
+            "unitarity": 0.8,
+            "gauge": 0.6,
+            "discreteness": 0.6,
+        }
+
+    def compose_constraint_field(
+        self, state: np.ndarray, laws: Optional[List[PhysicalLaw]] = None
+    ) -> Dict[str, Any]:
+        """
+        Compose a unified constraint field from selected physical laws.
+
+        Each force contributes as a set of constraint-aspect deltas. The combined
+        field can then be applied in one enforcement step.
+        """
+        active_laws = list(laws) if laws is not None else list(PhysicalLaw)
+        aspects: Dict[str, np.ndarray] = {}
+        for law in active_laws:
+            for name, delta in self._constraint_aspects_for_law(law, state).items():
+                if name in aspects:
+                    aspects[name] = aspects[name] + delta
+                else:
+                    aspects[name] = delta.copy()
+
+        combined = np.zeros_like(state, dtype=complex)
+        for name, delta in aspects.items():
+            weight = self.constraint_aspect_weights.get(name, 1.0)
+            combined = combined + weight * delta
+
+        return {
+            "combined": combined,
+            "aspects": aspects,
+            "active_laws": active_laws,
+        }
+
+    def _constraint_aspects_for_law(
+        self, law: PhysicalLaw, state: np.ndarray
+    ) -> Dict[str, np.ndarray]:
+        """Return constraint-aspect deltas contributed by a single law."""
+        n = len(state)
+        if n == 0:
+            return {}
+
+        idx = np.arange(n, dtype=float)
+        center = (n - 1) / 2.0
+        neighbor_laplace = np.roll(state, 1) + np.roll(state, -1) - 2.0 * state
+
+        if law == PhysicalLaw.STANDARD_MODEL:
+            phase_rate = self.law_parameters.get("sm_phase", 0.01)
+            phase = np.exp(1j * phase_rate * idx)
+            return {
+                "gauge": (phase - 1.0) * state,
+                "locality": self.law_parameters.get("sm_laplace", 0.03)
+                * neighbor_laplace,
+            }
+
+        if law == PhysicalLaw.GENERAL_RELATIVITY:
+            curvature_rate = self.law_parameters.get("gr_curvature", 0.02)
+            redshift_rate = self.law_parameters.get("gr_redshift", 0.02)
+            mix_scale = self.law_parameters.get("gr_mix", 0.02)
+            radius = np.abs(idx - center) / max(1.0, center)
+            curvature_profile = np.exp(-curvature_rate * radius**2)
+            redshift_phase = np.exp(-1j * redshift_rate * np.abs(idx - center))
+            return {
+                "curvature": (curvature_profile * redshift_phase - 1.0) * state,
+                "locality": mix_scale
+                * (np.roll(state, 1) + np.roll(state, -1) - state),
+            }
+
+        if law == PhysicalLaw.QUANTUM_MECHANICS:
+            H = self._build_hamiltonian(n)
+            dt = self.law_parameters.get("qm_dt", 0.005)
+            return {"unitarity": (-1j * dt / self.constants.hbar) * (H @ state)}
+
+        if law == PhysicalLaw.STRING_THEORY:
+            modes = np.fft.fft(state)
+            mode_idx = np.arange(n, dtype=float)
+            decay = self.law_parameters.get("string_decay", 0.1)
+            phase_rate = self.law_parameters.get("string_phase", 0.03)
+            envelope = 1.0 / (1.0 + decay * mode_idx)
+            phase = np.exp(1j * phase_rate * np.sqrt(mode_idx + 1.0))
+            transformed = np.fft.ifft(modes * envelope * phase)
+            return {"gauge": transformed - state}
+
+        if law == PhysicalLaw.LOOP_QUANTUM_GRAVITY:
+            local_avg = (state + np.roll(state, 1) + np.roll(state, -1)) / 3.0
+            phase_twist_rate = self.law_parameters.get("lqg_phase_twist", 0.02)
+            phase_twist = np.exp(1j * phase_twist_rate * (idx - np.mean(idx)))
+            twisted = local_avg * phase_twist
+            return {
+                "discreteness": twisted - state,
+                "locality": local_avg - state,
+            }
+
+        return {}
+
+    def _apply_law_as_constraint(
+        self, reality_state: np.ndarray, law: PhysicalLaw
+    ) -> Dict[str, Any]:
+        """Apply one physical law through the unified constraint-enforcement path."""
+        if law not in self.physical_laws:
+            self.physical_laws.append(law)
+        field = self.compose_constraint_field(reality_state, laws=[law])
+        reality_state[:] = reality_state + field["combined"]
+        self._renormalize_state(reality_state)
+        return field
 
     def register_custom_law(self, law: CustomPhysicalLaw) -> None:
         """Register a custom law implementation."""
@@ -82,6 +190,55 @@ class QuantumRealityEngine:
     def set_law_parameter(self, name: str, value: float) -> None:
         """Set tunable coefficient for built-in physical law transforms."""
         self.law_parameters[name] = float(value)
+
+    def calibrate_law_parameters(self, profile: str = "stable") -> Dict[str, float]:
+        """
+        Calibrate built-in law coefficients to a named operating regime.
+
+        Profiles:
+        - stable: conservative values for long-run numerical stability
+        - balanced: default mid-range behavior
+        - aggressive: stronger transforms for rapid dynamics exploration
+        """
+        alpha_scale = float(np.clip(self.constants.alpha * 137.036, 0.5, 1.5))
+        presets: Dict[str, Dict[str, float]] = {
+            "stable": {
+                "sm_phase": 0.008 * alpha_scale,
+                "sm_laplace": 0.020,
+                "gr_curvature": 0.015,
+                "gr_redshift": 0.015,
+                "gr_mix": 0.012,
+                "qm_dt": 0.003,
+                "string_decay": 0.120,
+                "string_phase": 0.020,
+                "lqg_phase_twist": 0.015,
+            },
+            "balanced": {
+                "sm_phase": 0.010 * alpha_scale,
+                "sm_laplace": 0.030,
+                "gr_curvature": 0.020,
+                "gr_redshift": 0.020,
+                "gr_mix": 0.020,
+                "qm_dt": 0.005,
+                "string_decay": 0.100,
+                "string_phase": 0.030,
+                "lqg_phase_twist": 0.020,
+            },
+            "aggressive": {
+                "sm_phase": 0.015 * alpha_scale,
+                "sm_laplace": 0.045,
+                "gr_curvature": 0.030,
+                "gr_redshift": 0.030,
+                "gr_mix": 0.030,
+                "qm_dt": 0.008,
+                "string_decay": 0.080,
+                "string_phase": 0.050,
+                "lqg_phase_twist": 0.030,
+            },
+        }
+        selected = presets.get(profile, presets["balanced"])
+        self.law_parameters.update(selected)
+        return dict(self.law_parameters)
 
     def impose_custom_laws(self, reality_state: np.ndarray) -> np.ndarray:
         """Apply all registered custom laws in sequence."""
@@ -253,88 +410,23 @@ class QuantumRealityEngine:
 
     def impose_standard_model(self, reality_state: np.ndarray):
         """Impose Standard Model physics."""
-        self.physical_laws.append(PhysicalLaw.STANDARD_MODEL)
-        # Effective gauge-coupling proxy: mode phase rotation + Laplacian transport.
-        n = len(reality_state)
-        if n == 0:
-            return
-        idx = np.arange(n, dtype=float)
-        phase_rate = self.law_parameters.get("sm_phase", 0.01)
-        laplace_scale = self.law_parameters.get("sm_laplace", 0.03)
-        phase = np.exp(1j * phase_rate * idx)
-        laplace_mix = laplace_scale * (
-            np.roll(reality_state, 1) + np.roll(reality_state, -1) - 2.0 * reality_state
-        )
-        reality_state[:] = reality_state * phase + laplace_mix
-        self._renormalize_state(reality_state)
+        self._apply_law_as_constraint(reality_state, PhysicalLaw.STANDARD_MODEL)
 
     def impose_gravity(self, reality_state: np.ndarray):
         """Impose general relativity."""
-        self.physical_laws.append(PhysicalLaw.GENERAL_RELATIVITY)
-        # Curvature proxy: radial damping + gravitational redshift + neighbor mixing.
-        n = len(reality_state)
-        if n == 0:
-            return
-        idx = np.arange(n, dtype=float)
-        center = (n - 1) / 2.0
-        curvature_rate = self.law_parameters.get("gr_curvature", 0.02)
-        redshift_rate = self.law_parameters.get("gr_redshift", 0.02)
-        mix_scale = self.law_parameters.get("gr_mix", 0.02)
-        curvature = np.exp(-curvature_rate * ((idx - center) / max(1.0, center)) ** 2)
-        redshift = np.exp(-1j * redshift_rate * np.abs(idx - center))
-        gravity_mix = mix_scale * (
-            np.roll(reality_state, 1) + np.roll(reality_state, -1)
-        )
-        reality_state[:] = (reality_state * curvature * redshift) + gravity_mix
-        self._renormalize_state(reality_state)
+        self._apply_law_as_constraint(reality_state, PhysicalLaw.GENERAL_RELATIVITY)
 
     def impose_quantum_mechanics(self, reality_state: np.ndarray):
         """Impose quantum mechanics."""
-        self.physical_laws.append(PhysicalLaw.QUANTUM_MECHANICS)
-        if len(reality_state) == 0:
-            return
-        H = self._build_hamiltonian(len(reality_state))
-        dt = self.law_parameters.get("qm_dt", 0.005)
-        U = (
-            np.eye(len(reality_state), dtype=complex)
-            - 1j * H * dt / self.constants.hbar
-        )
-        reality_state[:] = U @ reality_state
-        self._renormalize_state(reality_state)
+        self._apply_law_as_constraint(reality_state, PhysicalLaw.QUANTUM_MECHANICS)
 
     def impose_string_theory(self, reality_state: np.ndarray):
         """Impose string theory physics."""
-        self.physical_laws.append(PhysicalLaw.STRING_THEORY)
-        # String-mode proxy: FFT mode decay and frequency-dependent phase advance.
-        n = len(reality_state)
-        if n == 0:
-            return
-        modes = np.fft.fft(reality_state)
-        mode_idx = np.arange(n, dtype=float)
-        decay = self.law_parameters.get("string_decay", 0.1)
-        phase_rate = self.law_parameters.get("string_phase", 0.03)
-        envelope = 1.0 / (1.0 + decay * mode_idx)
-        phase = np.exp(1j * phase_rate * np.sqrt(mode_idx + 1.0))
-        modes = modes * envelope * phase
-        reality_state[:] = np.fft.ifft(modes)
-        self._renormalize_state(reality_state)
+        self._apply_law_as_constraint(reality_state, PhysicalLaw.STRING_THEORY)
 
     def impose_loop_quantum_gravity(self, reality_state: np.ndarray):
         """Impose loop quantum gravity."""
-        self.physical_laws.append(PhysicalLaw.LOOP_QUANTUM_GRAVITY)
-        # Spin-network proxy: local graph averaging + discrete geometric phase twist.
-        if len(reality_state) == 0:
-            return
-        local_avg = (
-            reality_state + np.roll(reality_state, 1) + np.roll(reality_state, -1)
-        ) / 3.0
-        mag = np.abs(local_avg)
-        idx = np.arange(len(reality_state), dtype=float)
-        phase_twist_rate = self.law_parameters.get("lqg_phase_twist", 0.02)
-        phase_twist = phase_twist_rate * (idx - np.mean(idx))
-        phase = np.exp(1j * (np.angle(local_avg) + phase_twist))
-        reality_state[:] = np.tanh(mag) * phase
-        self._renormalize_state(reality_state)
+        self._apply_law_as_constraint(reality_state, PhysicalLaw.LOOP_QUANTUM_GRAVITY)
 
     def _renormalize_state(self, state: np.ndarray) -> None:
         """Normalize a state vector in place."""
@@ -491,18 +583,80 @@ class QuantumRealityEngine:
         Returns:
             True if successful
         """
-        # Simplified implementation - in full version would modify metric tensor
-        # For now, just validate operation
         allowed = ["warp", "fold", "tear", "stitch", "inflate", "compress"]
         if operation not in allowed:
             return False
 
-        # Basic validation
         if "throat_radius" in parameters:
             if parameters["throat_radius"] <= 0:
                 return False
 
+        state = np.asarray(reality_state, dtype=complex)
+        if state.size == 0:
+            return False
+
+        idx = self._region_indices(region, len(state))
+        if idx.size == 0:
+            return False
+        if float(np.sum(np.abs(state[idx]) ** 2)) < 1e-8:
+            dominant = int(np.argmax(np.abs(state) ** 2))
+            idx = np.unique(np.concatenate([idx, np.array([dominant], dtype=int)]))
+
+        intensity = float(parameters.get("intensity", 0.1))
+        factor = float(parameters.get("factor", 1.1))
+        if factor <= 0:
+            return False
+
+        if operation == "warp":
+            phase = np.exp(1j * intensity * np.linspace(0.5, 1.5, idx.size))
+            state[idx] = state[idx] * phase
+        elif operation == "fold":
+            state[idx] = state[idx[::-1]]
+        elif operation == "tear":
+            tear_factor = float(parameters.get("tear_factor", 0.5))
+            if tear_factor < 0:
+                return False
+            attenuation = np.clip(1.0 - tear_factor, 0.0, 1.0)
+            torn = state[idx] * attenuation
+            spill = (state[idx] - torn) * 0.5
+            state[idx] = torn
+            state[(idx + 1) % len(state)] += spill
+            state[(idx - 1) % len(state)] += spill
+        elif operation == "stitch":
+            for i in idx:
+                left = state[(i - 1) % len(state)]
+                right = state[(i + 1) % len(state)]
+                state[i] = 0.5 * state[i] + 0.25 * (left + right)
+        elif operation == "inflate":
+            boosted = state[idx] * factor
+            state[idx] = boosted
+            state[(idx + 1) % len(state)] += 0.1 * boosted
+        elif operation == "compress":
+            compressed = state[idx] / factor
+            residual = state[idx] - compressed
+            state[idx] = compressed
+            state[(idx - 1) % len(state)] += 0.2 * residual
+
+        state[:] = self._normalize_copy(state)
+        self.current_time += 0.1
         return True
+
+    def _region_indices(self, region: np.ndarray, n: int) -> np.ndarray:
+        """Map a spacetime region descriptor to deterministic state-vector indices."""
+        if n <= 0:
+            return np.array([], dtype=int)
+        region_arr = np.asarray(region, dtype=float).flatten()
+        if region_arr.size == 0:
+            return np.array([], dtype=int)
+        base = np.abs(region_arr)
+        scaled = np.floor(base * max(1, n)).astype(int) % n
+        if scaled.size == 0:
+            return np.array([], dtype=int)
+        # Include neighbors for local geometric operations.
+        expanded = np.unique(
+            np.concatenate([scaled, (scaled + 1) % n, (scaled - 1) % n])
+        )
+        return expanded.astype(int)
 
     def merge_realities(
         self,
@@ -562,7 +716,25 @@ class QuantumRealityEngine:
         Returns:
             True if successful
         """
-        # Gradual decay to zero while preserving structure
+        state = np.asarray(reality_state, dtype=complex)
+        if state.size == 0:
+            return False
+
+        original = state.copy()
+        profile = np.linspace(1.0, 0.05, state.size)
+        phase = np.exp(1j * np.linspace(0.0, np.pi / 2.0, state.size))
+        phased = original * profile * phase
+        vac = np.zeros_like(phased)
+        vac[0] = 1.0 + 0.0j
+        state[:] = self._normalize_copy(0.25 * phased + 0.75 * vac)
+
+        self.current_time += 1.0
+        self.last_phase_out = {
+            "initial_norm": float(np.linalg.norm(original)),
+            "final_norm": float(np.linalg.norm(state)),
+            "profile_min": float(np.min(profile)),
+            "profile_max": float(np.max(profile)),
+        }
         return True
 
     def decay(self, reality_state: np.ndarray) -> bool:
@@ -575,7 +747,26 @@ class QuantumRealityEngine:
         Returns:
             True if successful
         """
-        # Natural decay
+        state = np.asarray(reality_state, dtype=complex)
+        if state.size == 0:
+            return False
+
+        original = state.copy()
+        idx = np.arange(state.size, dtype=float)
+        envelope = np.exp(-0.15 * idx / max(1.0, float(state.size - 1)))
+        phase = np.exp(-1j * 0.05 * idx)
+        thermal = 0.005 * (
+            np.sin(idx + self.current_time) + 1j * np.cos(2.0 * idx + self.current_time)
+        )
+        state[:] = original * envelope * phase + thermal
+        state[:] = self._normalize_copy(state)
+
+        self.current_time += 1.0
+        self.last_decay = {
+            "initial_norm": float(np.linalg.norm(original)),
+            "final_norm": float(np.linalg.norm(state)),
+            "mean_envelope": float(np.mean(envelope)),
+        }
         return True
 
     def backup_consciousness(
@@ -846,23 +1037,44 @@ class UniverseFromScratch:
         self.physics["c_from_consistency"] = (
             self.derive_speed_of_light_from_consistency()
         )
+        eigvals = np.linalg.eigvalsh(self.consistency_matrix)
+        self.physics["consistency_spread"] = float(np.max(eigvals) - np.min(eigvals))
 
     def get_derived_constants(self) -> Dict[str, float]:
         """Get all derived physical constants."""
-        alpha = self.physics.get("fine_structure_constant", 1 / 137.036)
+        alpha = float(self.physics.get("fine_structure_constant", 1 / 137.036))
+        c = float(
+            self.physics.get(
+                "c_from_consistency", self.derive_speed_of_light_from_consistency()
+            )
+        )
+        planck_scale = float(self.physics.get("planck_scale", 1.0))
+        spread = float(self.physics.get("consistency_spread", 0.0))
 
-        # Standard SI values derived from alpha and Planck scale
-        c = 299792458.0  # m/s
-        hbar = 1.054571817e-34  # J*s
+        # Derive hbar from consistency saturation scale rather than keeping fixed SI.
+        hbar_ref = 1.054571817e-34
+        hbar = hbar_ref / (max(1e-6, planck_scale) * (1.0 + 0.5 * spread))
 
-        # Derive other constants from alpha
-        e = 1.602176634e-19  # C
-        epsilon_0 = e**2 / (2 * alpha * hbar * c)
+        # Derive electromagnetic constants from alpha, c, and hbar.
+        mu_0 = 1.25663706212e-6
+        epsilon_0 = 1.0 / (mu_0 * c * c + 1e-60)
+        e = float(np.sqrt(max(0.0, 2.0 * alpha * hbar * c * epsilon_0)))
+
+        # Derive G from Planck-mass scaling: m_P^2 = ħc/G
+        m_planck_ref = 2.176434e-8
+        m_planck = m_planck_ref * np.sqrt(max(1e-6, planck_scale))
+        G = float(hbar * c / (m_planck * m_planck + 1e-60))
+        l_planck = 1.616255e-35
+        t_planck = l_planck / max(c, 1e-30)
+        k_B = float(hbar / (max(1e-60, t_planck) * 1.416784e32))
 
         return {
             "c": c,
             "hbar": hbar,
             "alpha": alpha,
+            "e": e,
+            "G": G,
+            "k_B": k_B,
             "epsilon_0": epsilon_0,
             "c_from_consistency": self.physics.get("c_from_consistency", c),
             "spatial_dimensions": self.physics.get("spatial_dimensions", 3),

@@ -66,9 +66,15 @@ class HeavenBuilder:
 
         print(f"Building {style} heaven city for {population:,} beings...")
 
-        # Create beings
+        # Create a representative cohort and scale metrics to target population.
+        represented_population = self._representative_sample_size(population)
+        population_scale = (
+            float(population) / float(represented_population)
+            if represented_population > 0
+            else 1.0
+        )
         beings = []
-        for i in range(min(population, 1000)):  # Limit for demo
+        for i in range(represented_population):
             being = reality.create_conscious_being(
                 being_type="human",
                 initial_consciousness=np.random.normal(20, 5),
@@ -90,12 +96,17 @@ class HeavenBuilder:
 
         # Optimize for consciousness
         print("Optimizing for consciousness...")
-        target_c = population * 0.1  # Target: 0.1 consciousness per person
+        target_c = represented_population * 0.1  # Target: 0.1 consciousness per person
         reality.optimize_for_consciousness(target_c=target_c)
 
         # Measure results
         print("Measuring heaven metrics...")
-        metrics = self._calculate_heaven_metrics(reality, beings)
+        metrics = self._calculate_heaven_metrics(
+            reality,
+            beings,
+            target_population=population,
+            represented_population=represented_population,
+        )
 
         print("[OK] Heaven city built successfully!")
         print(f"  Average consciousness: {metrics['avg_consciousness']:.1f}")
@@ -110,6 +121,8 @@ class HeavenBuilder:
             "layout": layout,
             "style": style,
             "population": population,
+            "represented_population": represented_population,
+            "population_scale": population_scale,
         }
 
     def build_heaven_planet(
@@ -288,7 +301,11 @@ class HeavenBuilder:
         return roles[index % len(roles)]
 
     def _calculate_heaven_metrics(
-        self, reality: Reality, beings: List[Any]
+        self,
+        reality: Reality,
+        beings: List[Any],
+        target_population: Optional[int] = None,
+        represented_population: Optional[int] = None,
     ) -> Dict[str, float]:
         """
         Calculate heaven metrics for a reality.
@@ -308,9 +325,18 @@ class HeavenBuilder:
                 "heaven_score": 0.0,
             }
 
-        total_c = reality.consciousness_field.total_consciousness()
-        num_beings = len(beings)
-        avg_c = total_c / num_beings if num_beings > 0 else 0.0
+        total_c_sample = reality.consciousness_field.total_consciousness()
+        num_beings_sample = len(beings)
+        avg_c = total_c_sample / num_beings_sample if num_beings_sample > 0 else 0.0
+
+        represented = represented_population or num_beings_sample
+        scale = 1.0
+        if target_population is not None and represented > 0:
+            scale = float(target_population) / float(represented)
+        total_c = float(total_c_sample * scale)
+        num_beings = (
+            int(target_population) if target_population is not None else represented
+        )
 
         avg_b = (
             reality.aesthetics_engine.average_beauty() if reality.beauty_field else 5.0
@@ -330,7 +356,19 @@ class HeavenBuilder:
             "heaven_score": heaven_score,
             "total_consciousness": total_c,
             "num_beings": num_beings,
+            "represented_population": float(represented),
+            "population_scale": float(scale),
         }
+
+    def _representative_sample_size(self, population: int) -> int:
+        """Choose cohort size for scalable city construction."""
+        if population <= 0:
+            return 0
+        if population <= 1_000:
+            return int(population)
+        # Sublinear growth: enough diversity without linear runtime explosion.
+        sample = int(np.sqrt(float(population)) * 20.0)
+        return int(max(1_000, min(10_000, sample)))
 
     def run_decade(self) -> Dict[str, Any]:
         """

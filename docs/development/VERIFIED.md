@@ -85,9 +85,9 @@ This document is used to keep the TODO maintainable and easy to update. It is us
 #### @VC13
 - [x] **Unification of Forces**
   - [x] All forces as constraint enforcement aspects
-    - @STATUS: `PARTIAL` `PhysicalLaw` enum exists but forces not unified as constraints
-    - @CODE: `src/mecha_mother/quantum/engine.py:11-17` (enum), `142-155` (imposition)
-    - @ACTION: Document or implement forces as constraint aspects
+    - @STATUS: `VERIFIED` Built-in forces now map into a shared constraint-aspect composition and unified enforcement path
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`compose_constraint_field`, `_constraint_aspects_for_law`, `_apply_law_as_constraint`, `impose_*`)
+    - @TEST: `tests/test_basic.py` (`test_unified_constraint_field_composition`, `test_unified_constraints_change_state`)
   - @PATH: `src/mecha_mother/quantum/engine.py`
   - @BACKREF: [TODO.md#vc13](../../TODO.md#vc13)
 
@@ -131,8 +131,9 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Fixed-point style ratio (`r_star`) is computed from consistency eigenvalues for constant extraction
     - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`)
   - [x] Complete set of equations for $c, \hbar, G, \epsilon_0, k_B$
-    - @STATUS: `PARTIAL` Derived pipeline now includes consistency-calibrated `c` and emergent alpha path; some constants remain SI-seeded
+    - @STATUS: `VERIFIED` Derived constants pipeline now emits consistency-driven $c, \hbar, G, \epsilon_0, k_B$ (with alpha from consistency spectrum)
     - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`, `derive_speed_of_light_from_consistency`, `get_derived_constants`)
+    - @TEST: `tests/test_basic.py` (`test_universe_derived_constants_are_consistency_driven`)
   - [x] Fine structure constant prediction: $\alpha = \frac{1}{137.035999...}$
     - @VERIFIED: `alpha` is extracted from consistency-spectrum scaling with a bounded physically reasonable range
     - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`)
@@ -152,10 +153,9 @@ This document is used to keep the TODO maintainable and easy to update. It is us
 #### @VC30
 - [x] **Moral Value**
   - [x] $\mathcal{V}(\Psi) = \frac{d\mathbb{C}}{d\Psi} \cdot \Delta\mathbb{C}_{\text{global}}$
-    - @STATUS: `PARTIAL` `compute_moral_value()` exists but uses simplified formula
-    - @CODE: `src/mecha_mother/ethics/engine.py:253-300`
-    - @NOTE: Implements $\text{MoralValue}(A) = \sum w_j \cdot \Delta\mathbb{C}_j \cdot e^{-\alpha t_j}$ (from 007.md section 3.1)
-    - @NOTE: Uses action-based calculation, not state-based gradient
+    - @STATUS: `VERIFIED` `compute_moral_value()` now uses a gradient-based directional term over ΔΨ, multiplied by estimated global consciousness delta
+    - @CODE: `src/mecha_mother/ethics/engine.py` (`compute_moral_value`, `_action_delta_state`, `_global_consciousness_delta`)
+    - @TEST: `tests/test_ethics_aesthetics.py` (`test_ethics_engine_moral_value_gradient_signs`)
   - @PATH: `src/mecha_mother/ethics/engine.py:253-300`
   - @BACKREF: [TODO.md#vc30](../../TODO.md#vc30)
 
@@ -373,9 +373,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
 - Extensibility framework for custom physical laws (`quantum/engine.py`, `reality/reality.py`)
 
 #### Partially Implemented ⚠️
-- Moral value (action-based, not state-based gradient)
-- Force unification remains represented via physical-law imposition abstractions rather than explicit single constraint operator
-- Fundamental constants pipeline is partially SI-seeded (consistency-derived alpha/c path implemented; full derivation set not yet closed)
+- No remaining partial items are tracked for VC30/VC13/VC21 after recent runtime integration.
 
 #### Missing ❌
 - No critical missing implementation blocks tracked in TODO remain; open items are currently partial-theory refinements listed above.

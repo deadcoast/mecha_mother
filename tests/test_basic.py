@@ -12,7 +12,11 @@ from mecha_mother.consciousness import (
     ConsciousnessEvolver,
     BeingType,
 )
-from mecha_mother.quantum.engine import UniverseFromScratch, QuantumRealityEngine
+from mecha_mother.quantum.engine import (
+    UniverseFromScratch,
+    QuantumRealityEngine,
+    PhysicalLaw,
+)
 
 
 def test_reality_creation():
@@ -205,6 +209,36 @@ def test_physical_law_impositions_modify_state():
     assert not np.allclose(s_lqg, base)
 
 
+def test_unified_constraint_field_composition():
+    """All built-in forces should map to shared constraint-aspect composition."""
+    engine = QuantumRealityEngine()
+    state = np.array([1.0 + 0.0j, 0.2 + 0.1j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+    state = state / np.linalg.norm(state)
+
+    field = engine.compose_constraint_field(state)
+    assert "combined" in field
+    assert "aspects" in field
+    assert "active_laws" in field
+    assert len(field["active_laws"]) == len(list(PhysicalLaw))
+    assert np.linalg.norm(field["combined"]) > 0
+    assert "locality" in field["aspects"]
+    assert "gauge" in field["aspects"]
+    assert "unitarity" in field["aspects"]
+
+
+def test_unified_constraints_change_state():
+    """Constraint-composed all-force application should update state and normalize."""
+    engine = QuantumRealityEngine()
+    state = np.array([1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+    before = state.copy()
+    field = engine.compose_constraint_field(state)
+    state = state + field["combined"]
+    state = state / (np.linalg.norm(state) + 1e-10)
+
+    assert np.isclose(np.linalg.norm(state), 1.0, atol=1e-8)
+    assert not np.allclose(state, before)
+
+
 def test_merge_realities_phase_alignment_and_padding():
     """Test merge_realities is phase-aligned and dimension-safe."""
     engine = QuantumRealityEngine()
@@ -263,6 +297,99 @@ def test_physical_law_parameter_controls_and_stability():
         engine.impose_loop_quantum_gravity(state)
         assert np.isclose(np.linalg.norm(state), 1.0, atol=1e-6)
         assert np.all(np.isfinite(state))
+
+
+def test_law_parameter_calibration_profiles():
+    """Calibration profiles should produce bounded, ordered dynamics parameters."""
+    engine = QuantumRealityEngine()
+    stable = engine.calibrate_law_parameters("stable")
+    aggressive = engine.calibrate_law_parameters("aggressive")
+
+    for key in [
+        "sm_phase",
+        "sm_laplace",
+        "gr_curvature",
+        "gr_redshift",
+        "gr_mix",
+        "qm_dt",
+        "string_decay",
+        "string_phase",
+        "lqg_phase_twist",
+    ]:
+        assert key in stable
+        assert key in aggressive
+
+    assert aggressive["sm_phase"] >= stable["sm_phase"]
+    assert aggressive["qm_dt"] >= stable["qm_dt"]
+    assert aggressive["string_phase"] >= stable["string_phase"]
+    assert aggressive["string_decay"] <= stable["string_decay"]
+
+
+def test_phase_out_and_decay_apply_state_changes():
+    """Destruction helpers should modify state deterministically and remain normalized."""
+    engine = QuantumRealityEngine()
+
+    state_phase = np.array([0.8 + 0.0j, 0.6 + 0.2j, 0.0 + 0.0j], dtype=complex)
+    state_phase = state_phase / np.linalg.norm(state_phase)
+    before_phase = state_phase.copy()
+    assert engine.phase_out(state_phase)
+    assert not np.allclose(state_phase, before_phase)
+    assert np.isclose(np.linalg.norm(state_phase), 1.0, atol=1e-8)
+    assert hasattr(engine, "last_phase_out")
+
+    state_decay = np.array([0.3 + 0.1j, 0.4 - 0.2j, 0.5 + 0.0j], dtype=complex)
+    state_decay = state_decay / np.linalg.norm(state_decay)
+    before_decay = state_decay.copy()
+    assert engine.decay(state_decay)
+    assert not np.allclose(state_decay, before_decay)
+    assert np.isclose(np.linalg.norm(state_decay), 1.0, atol=1e-8)
+    assert hasattr(engine, "last_decay")
+
+
+def test_quantum_engine_spacetime_manipulations():
+    """Spacetime operations should mutate state while keeping normalization."""
+    engine = QuantumRealityEngine()
+    base = np.array([1.0 + 0.0j] + [0.0 + 0.0j] * 7, dtype=complex)
+    region = np.array([0.2, 0.6, 0.9], dtype=float)
+
+    for op in ["warp", "fold", "tear", "stitch", "inflate", "compress"]:
+        state = base.copy()
+        ok = engine.manipulate_spacetime(op, region, {"intensity": 0.2}, state)
+        assert ok
+        assert np.isclose(np.linalg.norm(state), 1.0, atol=1e-8)
+        assert np.any(np.abs(state - base) > 1e-10)
+
+    state_invalid = base.copy()
+    assert not engine.manipulate_spacetime(
+        "warp", region, {"factor": -1.0}, state_invalid
+    )
+    assert not engine.manipulate_spacetime(
+        "tear", region, {"tear_factor": -0.1}, state_invalid
+    )
+    assert not engine.manipulate_spacetime("unknown", region, {}, state_invalid)
+
+
+def test_reality_spacetime_manipulation_integration():
+    """Reality API should route spacetime operations and record history."""
+    reality = Reality(
+        RealityConfig(
+            consciousness_support=False,
+            beauty_optimization=False,
+            ethical_constraints=False,
+        )
+    )
+    reality.initialize()
+    assert reality.reality_state_vector is not None
+    before = reality.reality_state_vector.copy()
+    success = reality.manipulate_spacetime(
+        operation="warp",
+        region=np.array([0.15, 0.45, 0.75], dtype=float),
+        parameters={"intensity": 0.3},
+    )
+    assert success
+    assert reality.reality_state_vector is not None
+    assert np.any(np.abs(reality.reality_state_vector - before) > 1e-10)
+    assert any(e.get("event") == "spacetime_manipulation" for e in reality.history)
 
 
 def test_classical_phase_space_dynamics():
@@ -350,6 +477,25 @@ def test_universe_from_scratch_time_and_c_derivation():
     assert c_cons > 1e8
     assert uni.consistency_count(5) == 10
     assert uni.total_constraints(5) == 15
+
+
+def test_universe_derived_constants_are_consistency_driven():
+    """Derived constants should be finite and internally consistent."""
+    uni = UniverseFromScratch()
+    uni.bootstrap_existence(max_iter=14)
+    constants = uni.get_derived_constants()
+
+    assert constants["c"] > 0
+    assert constants["hbar"] > 0
+    assert constants["alpha"] > 0
+    assert constants["G"] > 0
+    assert constants["k_B"] > 0
+    assert constants["epsilon_0"] > 0
+    assert constants["e"] > 0
+
+    mu_0 = 1.25663706212e-6
+    expected_epsilon = 1.0 / (mu_0 * constants["c"] * constants["c"])
+    assert np.isclose(constants["epsilon_0"], expected_epsilon, rtol=1e-6, atol=0.0)
 
 
 def test_reality_emergent_dimension_estimate():
