@@ -55,6 +55,7 @@ def test_conscious_being_creation():
     )
 
     assert being_id.startswith("being_")
+    assert reality.consciousness_field is not None
     assert len(reality.consciousness_field.get_beings()) > 0
 
 
@@ -110,7 +111,11 @@ def test_reality_merge():
 
 def benchmark_reality_operations(iterations: int = 3) -> dict:
     """Simple benchmark utility for core operations."""
-    timings = {"initialize": [], "simulate": [], "optimize_c": []}
+    timings: dict[str, list[float]] = {
+        "initialize": [],
+        "simulate": [],
+        "optimize_c": [],
+    }
     for _ in range(iterations):
         reality = Reality(RealityConfig(consciousness_support=True))
 

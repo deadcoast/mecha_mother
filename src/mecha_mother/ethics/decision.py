@@ -104,8 +104,10 @@ class EthicalDecisionEngine:
         """
         delta_c_total = self.ethics_engine.compute_moral_value(action, beings)
         if baseline_total_consciousness is None:
-            baseline_total_consciousness = float(
-                sum(float(getattr(b, "consciousness", 1.0)) for b in beings)
+            baseline_total_consciousness = (
+                float(sum(float(getattr(b, "consciousness", 1.0)) for b in beings))
+                if beings
+                else 1.0  # Avoid near-zero baseline when no beings provided
             )
 
         num_affected_raw = action.get("num_affected")
