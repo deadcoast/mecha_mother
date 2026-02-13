@@ -89,3 +89,13 @@ def test_heaven_builder_civilization():
     assert "total_consciousness" in metrics
     assert "heaven_score" in metrics
     assert metrics["scale"] == "type1"
+
+
+def test_heaven_decade_protocol():
+    """Test decade transformation and singularity protocol scaffolding."""
+    builder = HeavenBuilder()
+    result = builder.run_decade()
+    assert result["years"] == 10
+    assert "reports" in result
+    assert len(result["reports"]) == 10
+    assert result["technology_level"] > 1.0

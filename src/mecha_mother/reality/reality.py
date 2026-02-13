@@ -7,7 +7,11 @@ from typing import Dict, List, Optional, Any, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 
-from mecha_mother.quantum.engine import QuantumRealityEngine, PhysicalLaw
+from mecha_mother.quantum.engine import (
+    QuantumRealityEngine,
+    PhysicalLaw,
+    UniverseFromScratch,
+)
 from mecha_mother.consciousness.engine import ConsciousnessEngine, ConsciousnessField
 from mecha_mother.core.constraints import ConstraintResolver, ConsistencyError
 from mecha_mother.ethics.engine import EthicsEngine
@@ -71,6 +75,7 @@ class Reality:
         self.config: RealityConfig = config or RealityConfig()
         self.state = RealityState.UNINITIALIZED
         self.id = self._generate_reality_id()
+        self.emergent_dimensions: Optional[Dict[str, float]] = None
 
         # Core subsystems
         self.quantum_engine = QuantumRealityEngine()
@@ -115,6 +120,7 @@ class Reality:
         try:
             # Step 1: Create fundamental quantum field
             print("  Creating quantum vacuum...")
+            self.emergent_dimensions = self._derive_spacetime_dimensions()
             self.reality_state_vector = self.quantum_engine.create_vacuum_state(
                 dimensions=self.config.dimensions,
                 energy=self.config.initial_energy,
@@ -178,6 +184,11 @@ class Reality:
 
             print(f"[OK] Reality {self.id} successfully initialized!")
             print(f"  Dimensions: {self.config.dimensions}")
+            if self.emergent_dimensions is not None:
+                print(
+                    "  Emergent dimensions estimate: "
+                    f"{self.emergent_dimensions['base']:.0f} + {self.emergent_dimensions['epsilon']:.3f}"
+                )
             print(
                 f"  Consciousness: {'Enabled' if self.config.consciousness_support else 'Disabled'}"
             )
@@ -700,6 +711,41 @@ class Reality:
 
         return results
 
+    def simulate_classical(
+        self,
+        position: np.ndarray,
+        momentum: np.ndarray,
+        mass: float = 1.0,
+        dt: float = 0.01,
+        steps: int = 100,
+        force: Optional[np.ndarray] = None,
+    ) -> Dict[str, Any]:
+        """
+        Simulate deterministic classical dynamics in phase space.
+
+        Uses F = dp/dt and x_dot = p/m.
+        """
+        if self.state != RealityState.ACTIVE:
+            raise RuntimeError("Reality not active")
+
+        results = self.quantum_engine.evolve_classical_dynamics(
+            position=position,
+            momentum=momentum,
+            mass=mass,
+            dt=dt,
+            steps=steps,
+            force=force,
+        )
+        self.history.append(
+            {
+                "time": self._get_cosmic_time(),
+                "event": "classical_simulation",
+                "steps": steps,
+                "dt": dt,
+            }
+        )
+        return results
+
     def get_state(self, component: str = "full", format: str = "numpy") -> Any:
         """
         Get the current state of reality or its components.
@@ -960,6 +1006,21 @@ class Reality:
         seed = f"{uuid.uuid4()}{time.time()}{np.random.random()}"
         return hashlib.sha256(seed.encode()).hexdigest()[:16]
 
+    def _derive_spacetime_dimensions(self, max_iter: int = 16) -> Dict[str, float]:
+        """
+        Derive D = 3 + epsilon from consistency counting in the bootstrap tower.
+        """
+        uni = UniverseFromScratch()
+        bootstrap = uni.bootstrap_existence(max_iter=max_iter)
+        levels = float(bootstrap.get("levels", 0))
+        d_continuous = (levels + 1.0) / 2.0
+        d_base = float(np.floor(d_continuous))
+        epsilon = float(d_continuous - d_base)
+        if d_base < 1.0:
+            d_base = float(self.config.dimensions)
+            epsilon = 0.0
+        return {"base": d_base, "epsilon": epsilon, "continuous": d_continuous}
+
     def _generate_id(self) -> str:
         """Generate unique ID for objects."""
         import uuid
@@ -974,6 +1035,19 @@ class Reality:
             import time
 
             return time.time()
+
+    def add_custom_physical_law(self, law: Any) -> None:
+        """
+        Register a custom physical law object with an `impose(state, engine)` method.
+        """
+        self.quantum_engine.register_custom_law(law)
+        self.history.append(
+            {
+                "time": self._get_cosmic_time(),
+                "event": "custom_physical_law_registered",
+                "law": getattr(law, "name", law.__class__.__name__),
+            }
+        )
 
     def _impose_physical_law(self, law: PhysicalLaw):
         """Impose a physical law on the reality."""
@@ -1249,9 +1323,7 @@ class Reality:
             initial_energy=_as_float(config_dict.get("initial_energy"), 1e9),
             entropy_seed=_as_int(config_dict.get("entropy_seed"), 42),
             ethical_constraints=_as_bool(config_dict.get("ethical_constraints"), True),
-            beauty_optimization=_as_bool(
-                config_dict.get("beauty_optimization"), False
-            ),
+            beauty_optimization=_as_bool(config_dict.get("beauty_optimization"), False),
             auto_consistency=_as_bool(config_dict.get("auto_consistency"), True),
         )
 

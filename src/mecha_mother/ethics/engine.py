@@ -689,3 +689,51 @@ class EthicsEngine:
                 beings_dicts.append({"type": "unknown", "weight": 1.0})
 
         return self.moral_operator.compute_moral_gradient(state_vector, beings_dicts)
+
+    def compute_right_to_exist(
+        self, system_consciousness: float, total_consciousness: float, dC_dt: float
+    ) -> float:
+        """
+        Compute right-to-exist intensity from docs/007.md.
+
+        R_exist = (C_system / C_total) * dC_system/dt
+        """
+        if total_consciousness <= 0:
+            return 0.0
+        return float((system_consciousness / total_consciousness) * dC_dt)
+
+    def compute_rights_hierarchy(
+        self, system_consciousness: float, total_consciousness: float, dC_dt: float
+    ) -> Dict[str, float]:
+        """
+        Compute a 5-right hierarchy derived from consciousness preservation/growth.
+        """
+        r_exist = self.compute_right_to_exist(
+            system_consciousness, total_consciousness, dC_dt
+        )
+        r_protection = float(max(0.0, r_exist * 0.9))
+        r_growth = float(max(0.0, dC_dt))
+        r_expression = float(max(0.0, np.log1p(system_consciousness)))
+        r_relationship = float(max(0.0, r_exist * 0.7 + r_growth * 0.3))
+        return {
+            "right_to_exist": r_exist,
+            "right_to_protection": r_protection,
+            "right_to_growth": r_growth,
+            "right_to_expression": r_expression,
+            "right_to_relationship": r_relationship,
+        }
+
+    def compute_golden_rule_balance(
+        self, dC_you_dT: float, dC_other_dT: float
+    ) -> Dict[str, float]:
+        """
+        Compute Golden Rule balance condition:
+        dC_you/dT == dC_other/dT at moral optimum.
+        """
+        imbalance = float(abs(dC_you_dT - dC_other_dT))
+        fairness = float(1.0 / (1.0 + imbalance))
+        return {
+            "imbalance": imbalance,
+            "fairness": fairness,
+            "golden_rule_satisfied": 1.0 if imbalance < 1e-6 else 0.0,
+        }

@@ -90,12 +90,24 @@ class BeautyOperator:
 
         vec = vec / (np.linalg.norm(vec) + 1e-10)
 
-        # Beauty = expectation value of 𝔹
-        beauty = np.abs(vec.conj().T @ self.B @ vec)
+        # Beauty via weighted universal formula plus operator expectation prior:
+        # 𝔹(X) = α Compression + β Symmetry + γ Novelty + δ Meaning
+        alpha = 0.35
+        beta = 0.25
+        gamma = 0.20
+        delta = 0.20
 
-        # Adjust for complexity (simpler = more beautiful if same beauty score)
         complexity = self._compute_complexity(vec)
-        beauty_adjusted = beauty * (1.0 / (1.0 + 0.1 * complexity))
+        compression = 1.0 / (1.0 + complexity)
+        symmetry = self._compute_symmetry(vec)
+        novelty = self._compute_novelty(vec)
+        meaning = self._compute_meaning(vec)
+
+        formula_beauty = (
+            alpha * compression + beta * symmetry + gamma * novelty + delta * meaning
+        )
+        operator_beauty = np.abs(vec.conj().T @ self.B @ vec)
+        beauty_adjusted = 0.6 * operator_beauty + 0.4 * formula_beauty
 
         # Scale to 0-10
         eigenvalues, _ = eig(self.B)  # type: ignore[misc]
@@ -109,6 +121,24 @@ class BeautyOperator:
         data = vec.tobytes()
         compressed = zlib.compress(data)
         return len(compressed) / len(data) if len(data) > 0 else 1.0
+
+    def _compute_symmetry(self, vec: np.ndarray) -> float:
+        mirrored = vec[::-1]
+        return float(np.clip(np.abs(np.dot(vec.conj(), mirrored)), 0.0, 1.0))
+
+    def _compute_novelty(self, vec: np.ndarray) -> float:
+        probs = np.abs(vec) ** 2
+        probs = probs / (np.sum(probs) + 1e-10)
+        entropy = -np.sum(probs * np.log(probs + 1e-10))
+        max_entropy = np.log(len(vec) + 1e-10)
+        return float(np.clip(entropy / (max_entropy + 1e-10), 0.0, 1.0))
+
+    def _compute_meaning(self, vec: np.ndarray) -> float:
+        eigenvalues, eigenvectors = eig(self.B)  # type: ignore[misc]
+        idx = int(np.argmax(np.abs(eigenvalues)))
+        dominant = eigenvectors[:, idx]
+        dominant = dominant / (np.linalg.norm(dominant) + 1e-10)
+        return float(np.clip(np.abs(np.dot(vec.conj(), dominant)), 0.0, 1.0))
 
     def _text_to_vector(self, text: str) -> np.ndarray:
         """Convert text to feature vector."""
@@ -657,10 +687,15 @@ class AestheticsEngine:
         n = self.beauty_operator.dim
 
         if art_type == "visual":
-            # Find most beautiful vector (largest eigenvalue eigenvector)
+            # Decomposition form: A = sum_i a_i * Psi_i + epsilon
             eigenvalues, eigenvectors = eig(self.beauty_operator.B)  # type: ignore[misc]
-            idx = np.argmax(np.abs(eigenvalues))
-            beautiful_vec = eigenvectors[:, idx]
+            idx = np.argsort(-np.abs(eigenvalues))
+            n_modes = min(4, len(idx))
+            coeffs = np.linspace(1.0, 0.4, n_modes) * max(0.1, min(1.0, complexity))
+
+            beautiful_vec = np.zeros(n, dtype=complex)
+            for i in range(n_modes):
+                beautiful_vec += coeffs[i] * eigenvectors[:, idx[i]]
 
             # Add controlled noise for interest
             noise = np.random.randn(n) * (1 - complexity) * 0.1
@@ -705,6 +740,54 @@ class AestheticsEngine:
             return notes
 
         return None
+
+    def evaluate_art_quality(
+        self, coefficients: np.ndarray, eigenvalues: np.ndarray, noise: np.ndarray
+    ) -> float:
+        """
+        Evaluate art quality from decomposition:
+        Q(A) = sum_i |a_i|^2 * lambda_i - ||epsilon||^2
+        """
+        coeff_power = np.abs(coefficients) ** 2
+        spectral_term = np.sum(coeff_power * np.abs(eigenvalues))
+        noise_penalty = np.linalg.norm(noise) ** 2
+        return float(spectral_term - noise_penalty)
+
+    def masterpiece_score(
+        self,
+        beauty_over_time: np.ndarray,
+        dt: float = 1.0,
+        theta_masterpiece: float = 50.0,
+    ) -> Dict[str, Any]:
+        """
+        Compute masterpiece criterion:
+        integral B_art(t) * exp(-0.01 t) dt > theta_masterpiece
+        """
+        times = np.arange(len(beauty_over_time), dtype=float) * dt
+        kernel = np.exp(-0.01 * times)
+        score = float(np.sum(beauty_over_time * kernel) * dt)
+        return {
+            "score": score,
+            "theta_masterpiece": float(theta_masterpiece),
+            "is_masterpiece": score > theta_masterpiece,
+        }
+
+    def verify_eigenvalue_patterns(self) -> Dict[str, Any]:
+        """
+        Verify leading beauty eigenvalues against expected pattern anchors.
+        """
+        eigenvalues, _ = eig(self.beauty_operator.B)  # type: ignore[misc]
+        mags = np.sort(np.abs(eigenvalues))[::-1]
+        phi = (1 + np.sqrt(5)) / 2
+        targets = np.array([phi, 2.0, 1.5])
+        observed = mags[: len(targets)]
+        error = np.linalg.norm(observed - targets) / (np.linalg.norm(targets) + 1e-10)
+        return {
+            "observed": observed.tolist(),
+            "targets": targets.tolist(),
+            "relative_error": float(error),
+            "matches_expected": bool(error < 0.35),
+        }
 
     def _compute_harmony_score(self, frequencies: List[float]) -> float:
         """Compute harmonic beauty of a set of frequencies."""

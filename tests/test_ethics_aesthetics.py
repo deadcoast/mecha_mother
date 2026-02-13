@@ -4,7 +4,7 @@ Tests for ethics and aesthetics components.
 
 import numpy as np
 from mecha_mother import Reality, RealityConfig
-from mecha_mother.ethics import EthicsEngine, EthicalDecisionEngine
+from mecha_mother.ethics import EthicsEngine, EthicalDecisionEngine, EthicsCompiler
 from mecha_mother.aesthetics import AestheticsEngine, BeautyOperator
 
 
@@ -94,3 +94,45 @@ def test_reality_with_beauty():
     results = reality.optimize_for_beauty(target_b=8.0)
     assert "success" in results
     assert results["success"]
+
+
+def test_rights_and_golden_rule():
+    """Test rights hierarchy and golden-rule balance calculations."""
+    engine = EthicsEngine()
+    rights = engine.compute_rights_hierarchy(
+        system_consciousness=10.0, total_consciousness=100.0, dC_dt=1.5
+    )
+    assert "right_to_exist" in rights
+    assert rights["right_to_exist"] > 0
+
+    balance = engine.compute_golden_rule_balance(dC_you_dT=1.0, dC_other_dT=1.0)
+    assert balance["golden_rule_satisfied"] == 1.0
+
+
+def test_masterpiece_metric():
+    """Test masterpiece criterion computation."""
+    engine = AestheticsEngine()
+    history = np.array([8.0, 8.5, 9.0, 9.3, 9.5, 9.6, 9.7])
+    score = engine.masterpiece_score(history, dt=1.0, theta_masterpiece=10.0)
+    assert "score" in score
+    assert "is_masterpiece" in score
+
+
+def test_eigenvalue_pattern_verification():
+    """Test eigenvalue pattern verification API."""
+    engine = AestheticsEngine()
+    result = engine.verify_eigenvalue_patterns()
+    assert "observed" in result
+    assert "targets" in result
+    assert "matches_expected" in result
+
+
+def test_ethics_compiler_transform():
+    """Test ethics compiler transforms unsafe operations."""
+    compiler = EthicsCompiler()
+    compiled = compiler.compile_program(
+        [{"type": "help"}, {"type": "harm"}, {"type": "destroy"}]
+    )
+    transformed_types = [c["type"] for c in compiled]
+    assert "assist" in transformed_types
+    assert "decommission_safely" in transformed_types

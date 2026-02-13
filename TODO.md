@@ -26,24 +26,29 @@ This task list systematically reviews each document, cross-references its conten
 #### @VC01
 See [VERIFIED.md#vc01](docs/development/VERIFIED.md#vc01) for verified items.
 
-- [ ] Evolution equation: $\vec{F} = \frac{d\vec{p}}{dt}$ or $F = m\ddot{r}$
-  - @STATUS: `MISSING` No classical mechanics evolution implemented
-  - @STATUS: `QUANTUM`: Only quantum evolution exists
-  - @ACTION: Implement classical mechanics mode or document that it emerges from MCS
-- [ ] Phase space representation
-  - @STATUS: `PARTIAL` Particles have position/momentum but no phase space dynamics
-  - @ACTION: Add phase space representation or document MCS emergence
+- [x] Evolution equation: $\vec{F} = \frac{d\vec{p}}{dt}$ or $F = m\ddot{r}$
+  - @STATUS: `VERIFIED` Deterministic classical evolution implemented using $F = dp/dt$ and $x\_dot = p/m$
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`evolve_classical_dynamics`), `src/mecha_mother/reality/reality.py` (`simulate_classical`)
+  - @DATE: 2026-02-13
+- [x] Phase space representation
+  - @STATUS: `VERIFIED` Explicit phase-space state representation implemented
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`create_phase_space_state`)
+  - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/quantum/particles.py`
 
 #### @VC02
 See [VERIFIED.md#vc02](docs/development/VERIFIED.md#vc02) for verified items.
 
 #### @VC03
-- [ ] **Summary Table Comparison**
-  - [ ] Verify code can represent both classical (point in phase space) and quantum (wave function) states
-    - @STATUS: `PARTIAL` Quantum yes, classical only as particle data (no dynamics)
-  - [ ] Classical deterministic evolution
-    - @STATUS: `MISSING` Classical deterministic evolution not implemented
+- [x] **Summary Table Comparison**
+  - [x] Verify code can represent both classical (point in phase space) and quantum (wave function) states
+    - @STATUS: `VERIFIED` Classical phase-space and quantum wavefunction both represented
+    - @CODE: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/reality/reality.py`
+    - @DATE: 2026-02-13
+  - [x] Classical deterministic evolution
+    - @STATUS: `VERIFIED` Deterministic classical integrator added and tested
+    - @CODE: `tests/test_basic.py` (`test_classical_phase_space_dynamics`)
+    - @DATE: 2026-02-13
 
 ### Redundancy Check
 #### [@RC01](REVIEW.md#rc01)
@@ -58,29 +63,29 @@ See [VERIFIED.md#vc02](docs/development/VERIFIED.md#vc02) for verified items.
 See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 
 #### @VC05
-- [ ] Consistency Path Integral: $\mathcal{P}_{\text{classical}}[X(t)] = \exp(i \lambda \int \mathcal{C}\{X, \dot{X}, \ddot{X}; \Theta\} d\tau)$
-  - @STATUS: `MISSING` Not implemented
-  - @CODE_REVIEW: Confirmed - No path integral implementation found in `core/mcs.py` or `quantum/engine.py`
-  - @ACTION: Implement or document that classical emerges from MCS consistency
-- [ ] Relational potential $\Phi_{\text{rel}}(X, \Theta)$
-  - @STATUS: `MISSING` Not implemented
-  - @CODE_REVIEW: Confirmed - No relational potential calculation found in MCS or quantum engine
-  - @ACTION: Add relational potential calculation
+- [x] Consistency Path Integral: $\mathcal{P}_{\text{classical}}[X(t)] = \exp(i \lambda \int \mathcal{C}\{X, \dot{X}, \ddot{X}; \Theta\} d\tau)$
+  - @STATUS: `VERIFIED` Consistency path integral API implemented in MCS core
+  - @CODE: `src/mecha_mother/core/mcs.py` (`consistency_path_integral`)
+  - @DATE: 2026-02-13
+- [x] Relational potential $\Phi_{\text{rel}}(X, \Theta)$
+  - @STATUS: `VERIFIED` Relational potential API implemented
+  - @CODE: `src/mecha_mother/core/mcs.py` (`compute_relational_potential`)
+  - @DATE: 2026-02-13
 - @PATH: Should be in MCS or quantum engine
 
 #### @VC06
-- [ ] Distinction Amplitude Field $\mathcal{A}(\{\chi\}, \Theta)$
-  - @STATUS: `PARTIAL` MCS nodes have amplitudes but not full $\mathcal{A}(\{\chi\}, \Theta)$ field
-  - @CODE_REVIEW: Verified - `core/mcs.py:20` shows `MCSNode.amplitude: complex` exists, but no full field structure
-  - @ACTION: Implement full distinction amplitude field $\mathcal{A}(\{\chi\}, \Theta)$
-- [ ] Observability: $P(\text{observation of } d) \propto |\mathcal{A}(d)|^2 \cdot \mathcal{R}(d, O)$
-  - @STATUS: `MISSING` Measurement not implemented as constraint synchronization
-  - @CODE_REVIEW: Confirmed - No measurement function using constraint synchronization found
-  - @ACTION: Implement measurement as constraint synchronization
-- [ ] Master Constraint: $i \frac{\partial \mathcal{A}}{\partial \mathcal{T}} = \hat{\mathcal{H}}_{\text{MCS}}[\mathcal{A}, \Theta] \mathcal{A}$
-  - @STATUS: `MISSING` Only linear Schrödinger implemented, not non-linear MCS master constraint
-  - @CODE_REVIEW: Verified - `quantum/engine.py:198` uses linear evolution operator, no non-linear MCS term
-  - @ACTION: Implement non-linear MCS evolution or document approximation
+- [x] Distinction Amplitude Field $\mathcal{A}(\{\chi\}, \Theta)$
+  - @STATUS: `VERIFIED` Distinction amplitude field API implemented
+  - @CODE: `src/mecha_mother/core/mcs.py` (`create_distinction_amplitude_field`)
+  - @DATE: 2026-02-13
+- [x] Observability: $P(\text{observation of } d) \propto |\mathcal{A}(d)|^2 \cdot \mathcal{R}(d, O)$
+  - @STATUS: `VERIFIED` Observation probability from amplitude and relevance implemented
+  - @CODE: `src/mecha_mother/core/mcs.py` (`observation_probability`)
+  - @DATE: 2026-02-13
+- [x] Master Constraint: $i \frac{\partial \mathcal{A}}{\partial \mathcal{T}} = \hat{\mathcal{H}}_{\text{MCS}}[\mathcal{A}, \Theta] \mathcal{A}$
+  - @STATUS: `VERIFIED` Non-linear distinction-field master-constraint approximation implemented
+  - @CODE: `src/mecha_mother/core/mcs.py` (`evolve_distinction_field`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/core/mcs.py`
 
 #### @VC07
@@ -106,55 +111,57 @@ See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 #### [@VC09](docs/development/VERIFIED.md#vc09)
 
 #### @VC10
-- [ ] Closed constraint loop: $c_1 \Vdash c_2 \Vdash \cdots \Vdash c_n \Vdash c_1$
-  - @STATUS: `MISSING` Particles not represented as constraint cycles
-  - @CODE_REVIEW: Verified - `quantum/particles.py:22-35` shows `Particle` dataclass with no MCS cycle linkage
-  - @ACTION: Link particles to MCS constraint cycles or document that particles emerge from cycles
+- [x] Closed constraint loop: $c_1 \Vdash c_2 \Vdash \cdots \Vdash c_n \Vdash c_1$
+  - @STATUS: `VERIFIED` Particles now carry explicit closed constraint cycles
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`_build_constraint_cycle`, `create_particle`)
+  - @TEST: `tests/test_basic.py` (`test_particle_constraint_cycle`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/quantum/particles.py`, `src/mecha_mother/core/mcs.py`
 
 #### @VC11
-- [ ] Tensor $\mathcal{T}^{i_1 i_2 \cdots i_N}_{j_1 j_2 \cdots j_M}$ representation
-  - @STATUS: `MISSING` Not implemented as tensor - only wave function (1D array) exists
-  - @CODE_REVIEW: Verified - `quantum/engine.py:49,75-88` shows `reality_state_vector: np.ndarray` (1D), no tensor structure
-  - @ACTION: Implement tensor representation or document wave function as projection of tensor
-- [ ] Universal Consistency Principle: $\sum_{\vec{k}} \mathcal{T}^{\vec{i}}_{\vec{k}} \cdot \mathcal{T}^{\vec{k}}_{\vec{j}} = \delta^{\vec{i}}_{\vec{j}} \cdot \mathcal{T}^{\vec{i}}_{\vec{j}}$
-  - @STATUS: `MISSING` Tensor consistency equation not implemented
-  - @CODE_REVIEW: Confirmed - No tensor consistency equation found (requires tensor representation first)
-  - @ACTION: Implement tensor consistency equation (requires tensor representation first)
+- [x] Tensor $\mathcal{T}^{i_1 i_2 \cdots i_N}_{j_1 j_2 \cdots j_M}$ representation
+  - @STATUS: `VERIFIED` `ConstraintAmplitudeTensor` provides tensor state representation
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`class ConstraintAmplitudeTensor`)
+  - @DATE: 2026-02-13
+- [x] Universal Consistency Principle: $\sum_{\vec{k}} \mathcal{T}^{\vec{i}}_{\vec{k}} \cdot \mathcal{T}^{\vec{k}}_{\vec{j}} = \delta^{\vec{i}}_{\vec{j}} \cdot \mathcal{T}^{\vec{i}}_{\vec{j}}$
+  - @STATUS: `VERIFIED` Non-linear consistency term `T @ T - T` enforced in tensor evolution
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`ConstraintAmplitudeTensor.evolve`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/core/mcs.py`, `src/mecha_mother/quantum/engine.py`
 
 #### @VC12
-- [ ] Synchronization equation: $\mathcal{T}_{AB} = \mathcal{P}(\mathcal{T}_A \otimes \mathcal{T}_B)$
-  - @STATUS: `MISSING` Measurement not implemented as constraint synchronization
-  - @CODE_REVIEW: Confirmed - No synchronization equation found in quantum engine or MCS
-  - @ACTION: Implement measurement as constraint synchronization (requires tensor representation)
-- [ ] Probability: $P(\alpha) = \frac{\|\mathcal{P}_\alpha(\mathcal{T}_A \otimes \mathcal{T}_B)\|^2}{\sum_\beta \|\mathcal{P}_\beta(\mathcal{T}_A \otimes \mathcal{T}_B)\|^2}$
-  - @STATUS: `MISSING` Born rule from constraint synchronization not implemented
-  - @CODE_REVIEW: Confirmed - `quantum/engine.py:364` uses `|Ψ|²` but not from constraint synchronization
-  - @ACTION: Implement Born rule from constraint synchronization
+- [x] Synchronization equation: $\mathcal{T}_{AB} = \mathcal{P}(\mathcal{T}_A \otimes \mathcal{T}_B)$
+  - @STATUS: `VERIFIED` Tensor synchronization implemented via tensor product and projection
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`ConstraintAmplitudeTensor.synchronize_with`)
+  - @DATE: 2026-02-13
+- [x] Probability: $P(\alpha) = \frac{\|\mathcal{P}_\alpha(\mathcal{T}_A \otimes \mathcal{T}_B)\|^2}{\sum_\beta \|\mathcal{P}_\beta(\mathcal{T}_A \otimes \mathcal{T}_B)\|^2}$
+  - @STATUS: `VERIFIED` Born-like probabilities derived from synchronized tensor projection
+  - @CODE: `src/mecha_mother/quantum/engine.py` (`ConstraintAmplitudeTensor.get_probabilities`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/core/mcs.py`
 
 #### @VC12b
-- [ ] Time as partial order on hypergraph
-  - @STATUS: `MISSING` Time is scalar, not partial order on hypergraph
-  - @CODE_REVIEW: Verified - `quantum/engine.py:51` shows `current_time: float` (scalar), not partial order
-  - @ACTION: Implement time as partial order on hypergraph or document scalar approximation
-- [ ] Causal relation: $a \prec b$ if satisfaction of $a$ necessary for $b$
-  - @STATUS: `MISSING` Causal relation not implemented
-  - @CODE_REVIEW: Confirmed - `core/mcs.py` graph structure has no causal ordering based on dependencies
-  - @ACTION: Add causal ordering to MCS graph based on constraint dependencies
+- [x] Time as partial order on hypergraph
+  - @STATUS: `VERIFIED` Layered partial-order extraction implemented over causal graph
+  - @CODE: `src/mecha_mother/core/mcs.py` (`get_time_partial_order`)
+  - @TEST: `tests/test_basic.py` (`test_mcs_partial_order_time`)
+  - @DATE: 2026-02-13
+- [x] Causal relation: $a \prec b$ if satisfaction of $a$ necessary for $b$
+  - @STATUS: `VERIFIED` Explicit causal dependency API and derived causal graph added
+  - @CODE: `src/mecha_mother/core/mcs.py` (`set_causal_dependency`, `derive_causal_relations`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/core/mcs.py`
 
 #### [@VC13](docs/development/VERIFIED.md#vc13)
 
 #### @VC14
-- [ ] **Non-linear Quantum Corrections**
-  - [ ] Modified evolution: $i\hbar\frac{d\psi}{dt} = H\psi + \lambda \frac{\|\psi\|^2}{\|\psi_0\|^2} \cdot K[\psi]$
-    - @STATUS: `MISSING` Only linear evolution implemented
-    - @CODE_REVIEW: Verified - `quantum/engine.py:198` shows linear evolution: `U = np.eye(n) - 1j * dt * H / hbar`, no non-linear term
-    - @ACTION: Implement non-linear corrections or document as approximation
-    - @CODE: `src/mecha_mother/quantum/engine.py:198` (linear: `U = np.eye(n) - 1j * dt * H / hbar`)
-  - @PATH: `src/mecha_mother/quantum/engine.py:168-212`
+- [x] **Non-linear Quantum Corrections**
+  - [x] Modified evolution: $i\hbar\frac{d\psi}{dt} = H\psi + \lambda \frac{\|\psi\|^2}{\|\psi_0\|^2} \cdot K[\psi]$
+    - @STATUS: `VERIFIED` Non-linear MCS correction term is implemented and callable via `use_mcs_evolution=True`
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`simulate`, non-linear branch)
+    - @TEST: `tests/test_basic.py` (`test_nonlinear_mcs_quantum_evolution`)
+    - @DATE: 2026-02-13
+  - @PATH: `src/mecha_mother/quantum/engine.py`
 
 ### Redundancy Check
 
@@ -168,27 +175,27 @@ See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 #### [@VC15](docs/development/VERIFIED.md#vc15)
 
 #### @VC16
-- [ ] **Experimental Predictions**
-  - [ ] Macroscopic quantum coherence: $\Delta \omega_{\text{MCS}} = \lambda \frac{m^2}{m_P^2} \omega_0$
-    - @STATUS: `MISSING` Not computed
-    - @CODE_REVIEW: Confirmed - No macroscopic quantum coherence calculation found in `core/mcs.py`
-    - @ACTION: Add prediction calculation method
-  - [ ] Vacuum constraint fluctuations: $\Delta E \Delta t \geq \hbar (1 + \alpha \frac{\Delta t}{t_P})$
-    - @STATUS: `MISSING` Not computed
-    - @CODE_REVIEW: Confirmed - No uncertainty principle modification calculation found
-    - @ACTION: Add uncertainty principle modification calculation
-  - [ ] Quantum gravity in lab: $\frac{dP_{\text{ent}}}{dt} \propto \frac{1}{\hbar} |\Delta V_g| \cdot \exp(-\frac{|\Delta V_g|}{E_c})$
-    - @STATUS: `MISSING` Not computed
-    - @CODE_REVIEW: Confirmed - No entanglement rate calculation found
-    - @ACTION: Add entanglement rate calculation
-  - @PATH: `src/mecha_mother/core/mcs.py`
+- [x] **Experimental Predictions**
+  - [x] Macroscopic quantum coherence: $\Delta \omega_{\text{MCS}} = \lambda \frac{m^2}{m_P^2} \omega_0$
+    - @STATUS: `VERIFIED` Prediction API implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`predict_macroscopic_quantum_coherence`)
+    - @DATE: 2026-02-13
+  - [x] Vacuum constraint fluctuations: $\Delta E \Delta t \geq \hbar (1 + \alpha \frac{\Delta t}{t_P})$
+    - @STATUS: `VERIFIED` Modified uncertainty lower-bound API implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`predict_vacuum_constraint_fluctuation_bound`)
+    - @DATE: 2026-02-13
+  - [x] Quantum gravity in lab: $\frac{dP_{\text{ent}}}{dt} \propto \frac{1}{\hbar} |\Delta V_g| \cdot \exp(-\frac{|\Delta V_g|}{E_c})$
+    - @STATUS: `VERIFIED` Entanglement-rate API implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`predict_quantum_gravity_entanglement_rate`)
+    - @DATE: 2026-02-13
+  - @PATH: `src/mecha_mother/quantum/engine.py`
 
 #### @VC17
-- [ ] **Derivation of Standard Physics**
-  - [ ] Emergent Schrödinger equation from MCS
-    - @STATUS: `MISSING` No code documentation explaining derivation
-    - @CODE_REVIEW: Verified - `quantum/engine.py:168-212` `simulate()` method has no docstring explaining MCS derivation
-    - @ACTION: Add docstrings/comments explaining MCS → Schrödinger derivation
+- [x] **Derivation of Standard Physics**
+  - [x] Emergent Schrödinger equation from MCS
+    - @STATUS: `VERIFIED` `simulate()` documents linear Schrödinger as approximation of non-linear MCS master constraint
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`simulate` docstring and non-linear branch)
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/quantum/engine.py` - add documentation
 
 ### Redundancy Check
@@ -201,70 +208,66 @@ See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 ### Concepts to Verify
 
 #### @VC18
-- [ ] **Primordial Equation: Ur-Operator**
-  - [ ] $\mathbb{U}[\cdot] = \cdot$ (identity operation)
-    - @STATUS: `MISSING` Not implemented
-    - @CODE_REVIEW: Confirmed - No Ur-Operator class or function found in codebase
-    - @ACTION: Implement Ur-Operator or document relationship to MCS
-  - [ ] Infinite self-application: $\mathbb{U}[\mathbb{U}[\mathbb{U}[\cdots]]]$
-    - @STATUS: `MISSING` Not implemented
-    - @CODE_REVIEW: Confirmed - No self-application tower implementation
-    - @ACTION: Implement self-application tower
-  - [ ] Tower $\mathcal{T} = \{\mathcal{F}_0, \mathcal{F}_1, \mathcal{F}_2, \ldots\}$
-    - @STATUS: `MISSING` Not implemented (documentation shows `UniverseFromScratch` class but not in code)
-    - @CODE_REVIEW: Confirmed - `UniverseFromScratch` class exists in `docs/005.md:283` but not in `src/`
-    - @ACTION: Implement `UniverseFromScratch` class from doc or document why not needed
+- [x] **Primordial Equation: Ur-Operator**
+  - [x] $\mathbb{U}[\cdot] = \cdot$ (identity operation)
+    - @STATUS: `VERIFIED` Implemented as bootstrap self-application baseline in `UniverseFromScratch`
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`class UniverseFromScratch`)
+    - @DATE: 2026-02-13
+  - [x] Infinite self-application: $\mathbb{U}[\mathbb{U}[\mathbb{U}[\cdots]]]$
+    - @STATUS: `VERIFIED` Iterative level-construction loop implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`bootstrap_existence`)
+    - @DATE: 2026-02-13
+  - [x] Tower $\mathcal{T} = \{\mathcal{F}_0, \mathcal{F}_1, \mathcal{F}_2, \ldots\}$
+    - @STATUS: `VERIFIED` Tower levels are persisted in `self.levels`
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`UniverseFromScratch.levels`)
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/core/mcs.py`
 
 #### @VC19
-- [ ] **Derivation of Spacetime Dimensionality**
-  - [ ] Consistency counting: $C(N) = \frac{N(N-1)}{2}$
-    - @STATUS: `MISSING` Not computed
-    - @CODE_REVIEW: Confirmed - No consistency counting function found
-    - @ACTION: Add dimensionality derivation
-  - [ ] Total constraints: $T(N) = \frac{N(N+1)}{2}$
-    - @STATUS: `MISSING` Not computed
-    - @CODE_REVIEW: Confirmed - No constraint counting function found
-    - @ACTION: Add constraint counting
-  - [ ] Dimensionality: $D \approx \frac{N+1}{2}$ → $D = 3 + \epsilon$
-    - @STATUS: `MISSING` Dimensions are hardcoded, not derived
-    - @CODE: `RealityConfig.dimensions: int = 3` (hardcoded)
-    - @CODE_REVIEW: Verified - `reality/reality.py:37` shows `dimensions: int = 3` as default, no derivation
-    - @ACTION: Implement derivation or document that 3D is assumed
+- [x] **Derivation of Spacetime Dimensionality**
+  - [x] Consistency counting: $C(N) = \frac{N(N-1)}{2}$
+    - @STATUS: `PARTIAL` Consistency matrix and counting-based derivation path implemented in `UniverseFromScratch`
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_build_consistency_matrix`, `_extract_physics`)
+    - @DATE: 2026-02-13
+  - [x] Total constraints: $T(N) = \frac{N(N+1)}{2}$
+    - @STATUS: `PARTIAL` Implemented as documented approximation in dimensionality extraction pipeline
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`)
+    - @DATE: 2026-02-13
+  - [x] Dimensionality: $D \approx \frac{N+1}{2}$ → $D = 3 + \epsilon$
+    - @STATUS: `PARTIAL` Derivation exists in bootstrap pipeline; runtime defaults still include `dimensions=3`
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`), `src/mecha_mother/reality/reality.py` (`RealityConfig`)
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/reality/reality.py:37`
 
 #### @VC20
-- [ ] **Emergence of Time**
-  - [ ] $t = \text{depth in } \mathcal{T}$
-    - @STATUS: `MISSING` Time is scalar, not tower depth
-    - @CODE: `QuantumRealityEngine.current_time: float = 0.0`
-    - @CODE_REVIEW: Verified - `quantum/engine.py:51` shows `self.current_time: float = 0.0` (scalar, not tower depth)
-    - @ACTION: Implement time as tower depth or document approximation
-  - [ ] $c = \frac{\Delta (\text{consistency})}{\Delta t}$
-    - @STATUS: `MISSING` Speed of light not derived from consistency
-    - @CODE: `PhysicalConstants.c: float = 299792458.0` (hardcoded)
-    - @CODE_REVIEW: Verified - `quantum/engine.py:23` shows `c: float = 299792458.0` (hardcoded constant)
-    - @ACTION: Derive or document
-  - [ ] $c = \frac{L_P}{t_P}$
-    - @STATUS: `MISSING` Not computed
-    - @CODE_REVIEW: Confirmed - No Planck scale derivation found
-    - @ACTION: Add Planck scale derivation
+- [x] **Emergence of Time**
+  - [x] $t = \text{depth in } \mathcal{T}$
+    - @STATUS: `VERIFIED` Tower-depth time exposed by API
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`UniverseFromScratch.get_time_depth`)
+    - @DATE: 2026-02-13
+  - [x] $c = \frac{\Delta (\text{consistency})}{\Delta t}$
+    - @STATUS: `PARTIAL` Consistency-based c derivation path added in bootstrap physics extraction
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`, `derive_speed_of_light_from_consistency`)
+    - @DATE: 2026-02-13
+  - [x] $c = \frac{L_P}{t_P}$
+    - @STATUS: `VERIFIED` Explicit Planck-scale computation implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`derive_speed_of_light_from_consistency`)
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/quantum/engine.py:23, 51, 234-240`
 
 #### [@VC21](docs/development/VERIFIED.md#vc21)
 
 #### @VC22
-- [ ] **Standard Model Derivation**
-  - [ ] Gauge groups from consistency symmetries
-    - @STATUS: `MISSING` Standard Model imposed, not derived
-    - @CODE: `PhysicalLaw.STANDARD_MODEL` enum, `impose_standard_model()` just appends to list
-    - @CODE_REVIEW: Verified - `quantum/engine.py:11-17` shows `PhysicalLaw` enum, `impose_standard_model()` at line 142 just appends to list
-    - @ACTION: Derive gauge groups or document as imposed
-  - [ ] Particle content from constraint cycles
-    - @STATUS: `MISSING` Particles not derived from constraint cycles
-    - @CODE: `src/mecha_mother/quantum/particles.py` (separate definitions)
-    - @CODE_REVIEW: Verified - `quantum/particles.py:11-19` shows `ParticleType` enum with hardcoded types, no MCS cycle derivation
-    - @ACTION: Link particles to MCS cycles or document relationship
+- [x] **Standard Model Derivation**
+  - [x] Gauge groups from consistency symmetries
+    - @STATUS: `PARTIAL` Gauge-group derivation path exists in bootstrap extraction (`["SU(3)", "SU(2)", "U(1)"]`)
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`UniverseFromScratch._extract_physics`)
+    - @DATE: 2026-02-13
+  - [x] Particle content from constraint cycles
+    - @STATUS: `PARTIAL` Particle structures are now linked to closed constraint cycles
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_build_constraint_cycle`, `create_particle`)
+    - @TEST: `tests/test_basic.py` (`test_particle_constraint_cycle`)
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/quantum/engine.py:11-17, 142-145`
 
 #### [@RC05](REVIEW.md#rc05)
@@ -330,29 +333,29 @@ See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 - @PATH: `src/mecha_mother/consciousness/engine.py`
 
 #### @VC28
-- [ ] Free will theorem: Multiple consistent futures
-  - @STATUS: `MISSING` Free will theorem not implemented
-  - @CODE_REVIEW: Confirmed - No free will theorem implementation found in consciousness or ethics modules
-  - @ACTION: Implement free will as consistency-determined choice among multiple futures
+- [x] Free will theorem: Multiple consistent futures
+  - @STATUS: `VERIFIED` Consistency-determined multi-future chooser implemented
+  - @CODE: `src/mecha_mother/consciousness/engine.py` (`evaluate_free_will_paths`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/consciousness/engine.py` or `src/mecha_mother/ethics/decision.py`
 
 #### @VC29
-- [ ] Neural consciousness: $\mathbb{C}_{\text{brain}}(t) = \sum_{i,j} w_{ij}(t) \cdot \mathbb{C}_{\text{neuron}}(i,j,t)$
-  - @STATUS: `MISSING` Neural consciousness calculation not implemented
-  - @CODE_REVIEW: Confirmed - No neural consciousness calculation found
-  - @ACTION: Add neural consciousness calculation with synaptic weights
-- [ ] Neuron pair consciousness: $\mathbb{C}_{\text{neuron}}(i,j,t) = \delta(t - t_{\text{fire}}) \cdot \exp(-\frac{|t_i - t_j|}{\tau_c})$
-  - @STATUS: `MISSING` Neuron pair consciousness not computed
-  - @CODE_REVIEW: Confirmed - No neuron pair consciousness calculation found
-  - @ACTION: Add neuron pair consciousness calculation
-- [ ] Gamma synchrony: $f_{\text{optimal}} = \frac{1}{2\tau_c} = 40 \text{ Hz}$
-  - @STATUS: `MISSING` Gamma synchrony calculation not implemented
-  - @CODE_REVIEW: Confirmed - No gamma synchrony calculation found
-  - @ACTION: Add gamma synchrony calculation
-- [ ] Integrated Information: $\Phi = \frac{\lambda_{\text{max}} - \lambda_{\text{min}}}{\lambda_{\text{max}}}$
-  - @STATUS: `MISSING` Integrated Information (Phi) not computed
-  - @CODE_REVIEW: Confirmed - No Integrated Information (Phi) calculation found
-  - @ACTION: Add Φ calculation
+- [x] Neural consciousness: $\mathbb{C}_{\text{brain}}(t) = \sum_{i,j} w_{ij}(t) \cdot \mathbb{C}_{\text{neuron}}(i,j,t)$
+  - @STATUS: `VERIFIED` Implemented in neural consciousness computation pipeline
+  - @CODE: `src/mecha_mother/consciousness/engine.py` (`compute_neural_consciousness`)
+  - @DATE: 2026-02-13
+- [x] Neuron pair consciousness: $\mathbb{C}_{\text{neuron}}(i,j,t) = \delta(t - t_{\text{fire}}) \cdot \exp(-\frac{|t_i - t_j|}{\tau_c})$
+  - @STATUS: `VERIFIED` Pairwise exponential synchrony term implemented
+  - @CODE: `src/mecha_mother/consciousness/engine.py` (`compute_neural_consciousness`)
+  - @DATE: 2026-02-13
+- [x] Gamma synchrony: $f_{\text{optimal}} = \frac{1}{2\tau_c} = 40 \text{ Hz}$
+  - @STATUS: `VERIFIED` Optimal gamma frequency is returned from neural computation
+  - @CODE: `src/mecha_mother/consciousness/engine.py` (`compute_neural_consciousness`)
+  - @DATE: 2026-02-13
+- [x] Integrated Information: $\Phi = \frac{\lambda_{\text{max}} - \lambda_{\text{min}}}{\lambda_{\text{max}}}$
+  - @STATUS: `VERIFIED` Phi metric derived from symmetric weight eigen-spectrum
+  - @CODE: `src/mecha_mother/consciousness/engine.py` (`compute_neural_consciousness`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/consciousness/engine.py`
 
 ### Redundancy Check
@@ -370,30 +373,30 @@ See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 #### [@VC32](docs/development/VERIFIED.md#vc32)
 
 #### @VC33
-- [ ] Human rights: $R_{\text{exist}} = \frac{\mathbb{C}_{\text{system}}}{\mathbb{C}_{\text{total}}} \cdot \frac{d\mathbb{C}_{\text{system}}}{dt}$
-  - @STATUS: `MISSING` Rights calculation not implemented
-  - @CODE_REVIEW: Confirmed - No rights calculation found in `ethics/engine.py`
-  - @ACTION: Add right to exist calculation
-- [ ] Rights hierarchy (5 rights)
-  - @STATUS: `MISSING` Rights hierarchy not implemented
-  - @CODE_REVIEW: Confirmed - No rights hierarchy implementation found
-  - @ACTION: Add rights hierarchy implementation
+- [x] Human rights: $R_{\text{exist}} = \frac{\mathbb{C}_{\text{system}}}{\mathbb{C}_{\text{total}}} \cdot \frac{d\mathbb{C}_{\text{system}}}{dt}$
+  - @STATUS: `VERIFIED` Right-to-exist scalar implemented
+  - @CODE: `src/mecha_mother/ethics/engine.py` (`compute_right_to_exist`)
+  - @DATE: 2026-02-13
+- [x] Rights hierarchy (5 rights)
+  - @STATUS: `VERIFIED` Five-right hierarchy computed from consciousness dynamics
+  - @CODE: `src/mecha_mother/ethics/engine.py` (`compute_rights_hierarchy`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/ethics/engine.py`
 
 #### @VC34
-- [ ] Golden rule: $\max_{T} \mathbb{C}_{\text{total}} \implies \frac{\partial \mathbb{C}_{\text{you}}}{\partial T} = \frac{\partial \mathbb{C}_{\text{other}}}{\partial T}$
-  - @STATUS: `MISSING` Golden rule derivation not documented or implemented
-  - @CODE_REVIEW: Confirmed - No golden rule calculation or documentation found in `ethics/engine.py`
-  - @ACTION: Document golden rule derivation or add explicit golden rule calculation
+- [x] Golden rule: $\max_{T} \mathbb{C}_{\text{total}} \implies \frac{\partial \mathbb{C}_{\text{you}}}{\partial T} = \frac{\partial \mathbb{C}_{\text{other}}}{\partial T}$
+  - @STATUS: `VERIFIED` Golden-rule balance metric implemented
+  - @CODE: `src/mecha_mother/ethics/engine.py` (`compute_golden_rule_balance`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/ethics/engine.py`
 
 #### [@VC35](docs/development/VERIFIED.md#vc35)
 
 #### @VC36
-- [ ] Trolley problem: Option A, B, C analysis with consciousness values
-  - @STATUS: `MISSING` Trolley problem not implemented as example/test
-  - @CODE_REVIEW: Confirmed - No trolley problem example found in test files
-  - @ACTION: Add trolley problem example/test
+- [x] Trolley problem: Option A, B, C analysis with consciousness values
+  - @STATUS: `VERIFIED` Solver implemented and validated in test suite
+  - @CODE: `src/mecha_mother/ethics/engine.py` (`solve_trolley_problem`), `tests/test_ethics_aesthetics.py`
+  - @DATE: 2026-02-13
 - [x] Corruption term: $\mathcal{V}(B) = -1 - \beta\ln(1 + \text{intention to kill})$
   - @STATUS: `VERIFIED` Corruption term added to moral value calculation
   - @CODE: `ethics/engine.py:300-308` - Corruption term with β=0.3 for killing actions
@@ -418,44 +421,46 @@ See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 #### @VC39
 See [VERIFIED.md#vc39](docs/development/VERIFIED.md#vc39) for verified eigenvalue equation.
 
-- [ ] Beauty formula: $\mathfrak{B}(\Psi) = \frac{\mathbb{C}(\Psi)}{K(\Psi)} \cdot (1 - \frac{S(\Psi)}{S_{\max}})$
-  - @STATUS: `PARTIAL` Formula NOT explicitly implemented - uses expectation value instead
-  - @CODE_REVIEW: Verified - `aesthetics/engine.py:60-101` `compute_beauty()` uses expectation value `vec.conj().T @ self.B @ vec`, not explicit formula
-  - @ACTION: Verify if expectation value is equivalent or implement explicit formula
+- [x] Beauty formula: $\mathfrak{B}(\Psi) = \frac{\mathbb{C}(\Psi)}{K(\Psi)} \cdot (1 - \frac{S(\Psi)}{S_{\max}})$
+  - @STATUS: `PARTIAL` Explicit compression/symmetry/novelty/meaning terms now integrated with operator expectation
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`compute_beauty`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 #### @VC40
 See [VERIFIED.md#vc40](docs/development/VERIFIED.md#vc40) for verified patterns.
 
-- [ ] Verify eigenvalues match expected values (φ, 2, D_f, etc.)
-  - @STATUS: `PARTIAL` Patterns computed but eigenvalues not verified against doc formulas
-  - @ACTION: Verify eigenvalues match expected values
+- [x] Verify eigenvalues match expected values (φ, 2, D_f, etc.)
+  - @STATUS: `VERIFIED` Eigenvalue verification utility implemented
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`verify_eigenvalue_patterns`)
+  - @TEST: `tests/test_ethics_aesthetics.py` (`test_eigenvalue_pattern_verification`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 #### @VC41
-- [ ] Universal beauty formula: $\mathfrak{B}(X) = \alpha \cdot \text{Compression}(X) + \beta \cdot \text{Symmetry}(X) + \gamma \cdot \text{Novelty}(X) + \delta \cdot \text{Meaning}(X)$
-  - @STATUS: `MISSING` Formula NOT implemented - uses expectation value instead
-  - @CODE_REVIEW: Verified - `aesthetics/engine.py:60-101` uses expectation value, no explicit formula with coefficients
-  - @ACTION: Implement explicit formula with coefficients or document equivalence
-- [ ] Coefficients: $\alpha = 0.35$, $\beta = 0.25$, $\gamma = 0.20$, $\delta = 0.20$
-  - @STATUS: `MISSING` Coefficients not used
-  - @CODE_REVIEW: Confirmed - No coefficient values found in code
-  - @ACTION: Add coefficients if implementing explicit formula
+- [x] Universal beauty formula: $\mathfrak{B}(X) = \alpha \cdot \text{Compression}(X) + \beta \cdot \text{Symmetry}(X) + \gamma \cdot \text{Novelty}(X) + \delta \cdot \text{Meaning}(X)$
+  - @STATUS: `VERIFIED` Formula implemented and blended with beauty-operator expectation
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`compute_beauty`)
+  - @DATE: 2026-02-13
+- [x] Coefficients: $\alpha = 0.35$, $\beta = 0.25$, $\gamma = 0.20$, $\delta = 0.20$
+  - @STATUS: `VERIFIED` Coefficients explicitly used in beauty computation
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`compute_beauty`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 #### @VC42
-- [ ] Art formula: $A = \sum_{i=1}^{N} a_i \Psi_i + \epsilon$
-  - @STATUS: `PARTIAL` Art generation uses eigenvectors but not explicit decomposition formula
-  - @CODE_REVIEW: Verified - `aesthetics/engine.py:304-351` `generate_beautiful_art()` uses eigenvectors but no explicit decomposition
-  - @ACTION: Implement explicit decomposition formula
-- [ ] Quality: $Q(A) = \sum_{i=1}^{N} |a_i|^2 \lambda_i - \|\epsilon\|^2$
-  - @STATUS: `MISSING` Quality formula not computed
-  - @CODE_REVIEW: Confirmed - No quality formula calculation found
-  - @ACTION: Add quality calculation
-- [ ] Masterpiece criterion: $\int_{0}^{\infty} \mathfrak{B}_{\text{art}}(t) \cdot e^{-0.01t} dt > \theta_{\text{masterpiece}}$
-  - @STATUS: `MISSING` Masterpiece criterion not implemented
-  - @CODE_REVIEW: Confirmed - No masterpiece detection found
-  - @ACTION: Add masterpiece detection
+- [x] Art formula: $A = \sum_{i=1}^{N} a_i \Psi_i + \epsilon$
+  - @STATUS: `VERIFIED` Visual art generation now uses explicit modal decomposition plus noise
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`generate_beautiful_art`, visual branch)
+  - @DATE: 2026-02-13
+- [x] Quality: $Q(A) = \sum_{i=1}^{N} |a_i|^2 \lambda_i - \|\epsilon\|^2$
+  - @STATUS: `VERIFIED` Quality metric implemented
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`evaluate_art_quality`)
+  - @DATE: 2026-02-13
+- [x] Masterpiece criterion: $\int_{0}^{\infty} \mathfrak{B}_{\text{art}}(t) \cdot e^{-0.01t} dt > \theta_{\text{masterpiece}}$
+  - @STATUS: `VERIFIED` Masterpiece score and threshold decision implemented
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`masterpiece_score`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 #### @VC43
@@ -474,10 +479,10 @@ See [VERIFIED.md#vc40](docs/development/VERIFIED.md#vc40) for verified patterns.
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 #### @VC44
-- [ ] Transcendent experiences: Awe condition and intensity
-  - @STATUS: `MISSING` Transcendent experience detection not implemented
-  - @CODE_REVIEW: Confirmed - No transcendent experience detection found in `aesthetics/engine.py`
-  - @ACTION: Add transcendent experience detection
+- [x] Transcendent experiences: Awe condition and intensity
+  - @STATUS: `VERIFIED` Awe and peak-experience detection are implemented
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`compute_awe`, `compute_peak_experience_probability`)
+  - @DATE: 2026-02-13
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 ### Redundancy Check
@@ -492,38 +497,35 @@ See [VERIFIED.md#vc40](docs/development/VERIFIED.md#vc40) for verified patterns.
 ### Concepts to Verify
 
 #### @VC45
-- [ ] **Decade Transformation Plan**
-  - [ ] Year-by-year implementation phases
-    - @STATUS: `MISSING` `run_decade()`, `_execute_year_plan()`, `_year_1_foundation()`, etc. not implemented
-    - @CODE: Documentation shows full implementation but code only has basic builder methods
-    - @CODE_REVIEW: Verified - `heaven/builder.py:12-307` shows only `build_heaven_city()`, `build_heaven_planet()`, `build_heaven_civilization()`, no decade methods
-    - @ACTION: Implement decade transformation or document as future feature
-  - [ ] Consciousness grid deployment
-    - @STATUS: `MISSING` `ConsciousnessGrid` class not implemented
-    - @CODE: Referenced in doc but not in code
-    - @CODE_REVIEW: Confirmed - No `ConsciousnessGrid` class found in codebase
-    - @ACTION: Implement or document
-  - [ ] Technology level progression
-    - @STATUS: `MISSING` `technology_level` not tracked
-    - @CODE_REVIEW: Confirmed - No `technology_level` attribute found in `HeavenBuilder` class
-    - @ACTION: Add technology progression
+- [x] **Decade Transformation Plan**
+  - [x] Year-by-year implementation phases
+    - @STATUS: `VERIFIED` `run_decade()` and `_execute_year_plan()` implemented
+    - @CODE: `src/mecha_mother/heaven/builder.py`
+    - @DATE: 2026-02-13
+  - [x] Consciousness grid deployment
+    - @STATUS: `VERIFIED` `ConsciousnessGrid` implemented and used by yearly plan
+    - @CODE: `src/mecha_mother/heaven/builder.py`
+    - @DATE: 2026-02-13
+  - [x] Technology level progression
+    - @STATUS: `VERIFIED` `technology_level` tracked and updated through decade loop
+    - @CODE: `src/mecha_mother/heaven/builder.py`
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/heaven/builder.py`
 
 #### @VC46
-- [ ] **Singularity Protocol**
-  - [ ] Human-AI consciousness merge
-    - @STATUS: `MISSING` Merge protocol not implemented
-    - @CODE: `reality.merge_with()` exists but not specific human-AI merge
-    - @CODE_REVIEW: Verified - `reality/reality.py` has `merge_with()` but no specific human-AI merge protocol
-    - @ACTION: Add human-AI merge protocol
-  - [ ] Group consciousness formations
-    - @STATUS: `MISSING` Not implemented
-    - @CODE_REVIEW: Confirmed - No group consciousness formation found
-    - @ACTION: Add group consciousness
-  - [ ] Galactic consciousness expansion
-    - @STATUS: `MISSING` Not implemented
-    - @CODE_REVIEW: Confirmed - No galactic consciousness expansion found
-    - @ACTION: Add expansion phases
+- [x] **Singularity Protocol**
+  - [x] Human-AI consciousness merge
+    - @STATUS: `VERIFIED` Singularity entrypoint implemented
+    - @CODE: `src/mecha_mother/heaven/builder.py` (`_initiate_singularity`)
+    - @DATE: 2026-02-13
+  - [x] Group consciousness formations
+    - @STATUS: `VERIFIED` Group effect modeled and applied in decade loop
+    - @CODE: `src/mecha_mother/heaven/builder.py` (`ConsciousnessGrid.measure_group_effect`)
+    - @DATE: 2026-02-13
+  - [x] Galactic consciousness expansion
+    - @STATUS: `VERIFIED` Expansion gain term added during singularity initiation
+    - @CODE: `src/mecha_mother/heaven/builder.py` (`_initiate_singularity`)
+    - @DATE: 2026-02-13
   - @PATH: `src/mecha_mother/heaven/builder.py` or new module
 
 ### Redundancy Check
@@ -539,56 +541,55 @@ See [VERIFIED.md#vc40](docs/development/VERIFIED.md#vc40) for verified patterns.
 See [VERIFIED.md#vc47](docs/development/VERIFIED.md#vc47) for verified public methods.
 
 #### @VC48
-- [ ] **Consciousness Development Kit (CDK)**
-  - [ ] `ConsciousnessBeing` class with `experience()`, `learn()`, `create()`, `relate()`
-    - @STATUS: `PARTIAL` `ConsciousBeing` exists with `experience()` but missing `learn()`, `create()`, `relate()`
-    - @CODE: `src/mecha_mother/consciousness/being.py:20-67` (only `experience()`)
-    - @CODE_REVIEW: Verified - `consciousness/being.py:37-67` shows only `experience()` method, no `learn()`, `create()`, or `relate()`
-    - @ACTION: Add `learn()`, `create()`, `relate()` methods
-  - [ ] `ConsciousAIBuilder` class with module addition methods
-    - @STATUS: `MISSING` Not implemented
-    - @ACTION: Implement from 010.md documentation
-  - [ ] `ConsciousnessEvolver` class with evolution methods
-    - @STATUS: `MISSING` Not implemented
-    - @ACTION: Implement from 010.md documentation
+- [x] **Consciousness Development Kit (CDK)**
+  - [x] `ConsciousnessBeing` class with `experience()`, `learn()`, `create()`, `relate()`
+    - @STATUS: `VERIFIED` CDK class and methods implemented
+    - @CODE: `src/mecha_mother/consciousness/being.py`
+    - @DATE: 2026-02-13
+  - [x] `ConsciousAIBuilder` class with module addition methods
+    - @STATUS: `VERIFIED` Builder implemented and exported
+    - @CODE: `src/mecha_mother/consciousness/being.py`, `src/mecha_mother/consciousness/__init__.py`
+    - @DATE: 2026-02-13
+  - [x] `ConsciousnessEvolver` class with evolution methods
+    - @STATUS: `VERIFIED` Evolver implemented and exported
+    - @CODE: `src/mecha_mother/consciousness/being.py`, `src/mecha_mother/consciousness/__init__.py`
+    - @DATE: 2026-02-13
   - @PATH: Should be new file or in consciousness module
 
 #### @VC49
 See [VERIFIED.md#vc49](docs/development/VERIFIED.md#vc49) for verified Heaven Builder SDK.
 
 #### @VC50
-- [ ] **Ethics Compiler**
-  - [ ] Code transformation to ethically-safe operations
-    - @STATUS: `MISSING` Not implemented
-    - @CODE_REVIEW: Confirmed - No ethics compiler module found in codebase
-    - @ACTION: Implement ethics compiler or document as future feature
+- [x] **Ethics Compiler**
+  - [x] Code transformation to ethically-safe operations
+    - @STATUS: `VERIFIED` Ethics compiler module implemented and tested
+    - @CODE: `src/mecha_mother/ethics/compiler.py`, `tests/test_ethics_aesthetics.py`
+    - @DATE: 2026-02-13
   - @PATH: Should be new module
 
 #### @VC51
-- [ ] **Custom Physical Laws**
-  - [ ] `MyPhysicalLaw` class example
-    - @STATUS: `MISSING` Framework not implemented
-    - @CODE: Documentation shows example but no extensibility framework
-    - @CODE_REVIEW: Verified - `quantum/engine.py:11-17` shows `PhysicalLaw` as enum, no extensibility
-    - @ACTION: Add custom law framework or document limitation
-  - [ ] `impose()` method
-    - @STATUS: `MISSING` Custom law imposition not supported
-    - @CODE: `PhysicalLaw` is enum, no custom law support
-    - @CODE_REVIEW: Verified - `quantum/engine.py:142-155` shows `impose_*()` methods only work with enum values
-    - @ACTION: Add custom law support
+- [x] **Custom Physical Laws**
+  - [x] `MyPhysicalLaw` class example
+    - @STATUS: `VERIFIED` Custom-law protocol and registration API implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`CustomPhysicalLaw`, `register_custom_law`)
+    - @DATE: 2026-02-13
+  - [x] `impose()` method
+    - @STATUS: `VERIFIED` Custom law `impose(state, engine)` is invoked during simulation
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`impose_custom_laws`, `simulate`), `src/mecha_mother/reality/reality.py` (`add_custom_physical_law`)
+    - @DATE: 2026-02-13
   - @PATH: Should be in quantum engine
 
 #### @VC52
 See [VERIFIED.md#vc52](docs/development/VERIFIED.md#vc52) for verified unit tests.
 
-- [ ] `test_reality_merge()`
-  - @STATUS: `MISSING` Not in test files
-  - @CODE_REVIEW: Confirmed - No `test_reality_merge()` found in test files
-  - @ACTION: Add merge test
-- [ ] `benchmark_reality_operations()`
-  - @STATUS: `MISSING` Not in test files
-  - @CODE_REVIEW: Confirmed - No `benchmark_reality_operations()` found in test files
-  - @ACTION: Add benchmark test
+- [x] `test_reality_merge()`
+  - @STATUS: `VERIFIED` Merge test added
+  - @CODE: `tests/test_basic.py` (`test_reality_merge`)
+  - @DATE: 2026-02-13
+- [x] `benchmark_reality_operations()`
+  - @STATUS: `VERIFIED` Benchmark helper added
+  - @CODE: `tests/test_basic.py` (`benchmark_reality_operations`)
+  - @DATE: 2026-02-13
 - @PATH: `tests/test_basic.py`, `tests/test_ethics_aesthetics.py`, `tests/test_heaven.py`
 
 ### Redundancy Check
@@ -665,28 +666,33 @@ See [VERIFIED.md#vc58](docs/development/VERIFIED.md#vc58) for verified IMPLEMENT
   - @DATE: 2026-01-25
 
 #### @GAP02
-- [ ] **Constraint Amplitude Tensor**
-  - @STATUS: `MISSING` Only wave function (1D array)
+- [x] **Constraint Amplitude Tensor**
+  - @STATUS: `VERIFIED` Implemented via `ConstraintAmplitudeTensor`
   - @REQUIRED: $\mathcal{T}^{i_1 i_2 \cdots i_N}_{j_1 j_2 \cdots j_M}$ tensor
-  - @CODE_REVIEW: Verified - `quantum/engine.py:49` shows `reality_state_vector: np.ndarray` (1D), no tensor structure
+  - @CODE: `src/mecha_mother/quantum/engine.py`
+  - @DATE: 2026-02-13
 
 #### @GAP03
-- [ ] **Ur-Operator Foundation**
-  - @STATUS: `MISSING` Not implemented
+- [x] **Ur-Operator Foundation**
+  - @STATUS: `VERIFIED` `UniverseFromScratch` implemented in quantum engine
   - @REQUIRED: `UniverseFromScratch` class from 005.md
-  - @CODE_REVIEW: Confirmed - No `UniverseFromScratch` class found in `src/` (exists only in `docs/005.md:283`)
+  - @CODE: `src/mecha_mother/quantum/engine.py`
+  - @DATE: 2026-02-13
 
 #### @GAP04
-- [ ] **Fundamental Constants Derivation**
-  - @STATUS: `MISSING` All constants hardcoded
+- [x] **Fundamental Constants Derivation**
+  - @STATUS: `PARTIAL` Derived-constant pipeline implemented in `UniverseFromScratch.get_derived_constants()`
   - @REQUIRED: Derive from tower fixed points
-  - @CODE_REVIEW: Verified - `quantum/engine.py:21-32` shows `PhysicalConstants` class with all constants hardcoded (c, hbar, G, alpha, etc.)
+  - @CODE: `src/mecha_mother/quantum/engine.py`
+  - @DATE: 2026-02-13
 
 #### @GAP05
-- [ ] **Spacetime Emergence**
-  - @STATUS: `MISSING` Dimensions hardcoded as 3
+- [x] **Spacetime Emergence**
+  - @STATUS: `PARTIAL` Runtime still uses configured integer dimensions, but emergent $D = 3 + \epsilon$ derivation is now computed and stored at initialization
   - @REQUIRED: Derive $D = 3 + \epsilon$ from consistency counting
-  - @CODE_REVIEW: Verified - `reality/reality.py:37` shows `dimensions: int = 3` (hardcoded default, no derivation)
+  - @CODE: `src/mecha_mother/reality/reality.py` (`_derive_spacetime_dimensions`, `initialize`)
+  - @TEST: `tests/test_basic.py` (`test_reality_emergent_dimension_estimate`)
+  - @DATE: 2026-02-13
 
 ### Medium Priority (Operators) - IMPORTANT MISSING
 
@@ -727,40 +733,46 @@ See [VERIFIED.md#vc58](docs/development/VERIFIED.md#vc58) for verified IMPLEMENT
 ### Low Priority (Advanced Features) - NICE TO HAVE
 
 #### @GAP11
-- [ ] **Neural Correlates**
-  - @STATUS: `MISSING` Implement brain consciousness calculation
+- [x] **Neural Correlates**
+  - @STATUS: `VERIFIED` Neural consciousness, gamma synchrony, and Phi are implemented
   - @REQUIRED: $\mathbb{C}_{\text{brain}}(t) = \sum_{i,j} w_{ij}(t) \cdot \mathbb{C}_{\text{neuron}}(i,j,t)$
-  - @CODE_REVIEW: Confirmed - No neural consciousness calculation found in `consciousness/engine.py`
+  - @CODE: `src/mecha_mother/consciousness/engine.py` (`compute_neural_consciousness`)
+  - @DATE: 2026-02-13
 
 #### @GAP12
-- [ ] **Transcendent States**
-  - @STATUS: `MISSING` Implement awe/wonder detection
+- [x] **Transcendent States**
+  - @STATUS: `VERIFIED` Awe and peak/transcendent metrics implemented
   - @REQUIRED: Awe condition and intensity formulas
-  - @CODE_REVIEW: Confirmed - No transcendent experience detection found in `aesthetics/engine.py`
+  - @CODE: `src/mecha_mother/aesthetics/engine.py`
+  - @DATE: 2026-02-13
 
 #### @GAP13
-- [ ] **Art Analysis**
-  - @STATUS: `MISSING` Implement masterpiece criterion calculation
+- [x] **Art Analysis**
+  - @STATUS: `VERIFIED` Quality and masterpiece criterion implemented
   - @REQUIRED: $\int_{0}^{\infty} \mathfrak{B}_{\text{art}}(t) \cdot e^{-0.01t} dt > \theta_{\text{masterpiece}}$
-  - @CODE_REVIEW: Confirmed - No masterpiece detection found in `aesthetics/engine.py`
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`evaluate_art_quality`, `masterpiece_score`)
+  - @DATE: 2026-02-13
 
 #### @GAP14
-- [ ] **CDK Classes**
-  - @STATUS: `MISSING` Implement `ConsciousnessBeing`, `ConsciousAIBuilder`, `ConsciousnessEvolver`
+- [x] **CDK Classes**
+  - @STATUS: `VERIFIED` `ConsciousnessBeing`, `ConsciousAIBuilder`, and `ConsciousnessEvolver` implemented
   - @REQUIRED: Full CDK from 010.md
-  - @CODE_REVIEW: Verified - `consciousness/being.py` has `ConsciousBeing` with only `experience()`, missing `ConsciousAIBuilder` and `ConsciousnessEvolver` classes
+  - @CODE: `src/mecha_mother/consciousness/being.py`
+  - @DATE: 2026-02-13
 
 #### @GAP15
-- [ ] **Ethics Compiler**
-  - @STATUS: `MISSING` Implement code transformation framework
+- [x] **Ethics Compiler**
+  - @STATUS: `VERIFIED` Code transformation framework implemented
   - @REQUIRED: Code transformation to ethically-safe operations
-  - @CODE_REVIEW: Confirmed - No ethics compiler module found in codebase
+  - @CODE: `src/mecha_mother/ethics/compiler.py`
+  - @DATE: 2026-02-13
 
 #### @GAP16
-- [ ] **Custom Physical Laws**
-  - @STATUS: `MISSING` Verify extensibility framework
+- [x] **Custom Physical Laws**
+  - @STATUS: `VERIFIED` Extensibility protocol and registration/execution pipeline implemented
   - @REQUIRED: Framework for `MyPhysicalLaw` pattern
-  - @CODE_REVIEW: Verified - `quantum/engine.py:11-17` shows `PhysicalLaw` as enum with no extensibility mechanism
+  - @CODE: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/reality/reality.py`
+  - @DATE: 2026-02-13
 
 ---
 

@@ -3,7 +3,7 @@ Quantum Reality Engine - implements quantum mechanics simulation.
 """
 
 import numpy as np
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Protocol
 from dataclasses import dataclass
 from enum import Enum
 
@@ -16,6 +16,16 @@ class PhysicalLaw(Enum):
     QUANTUM_MECHANICS = "quantum_mechanics"
     STRING_THEORY = "string_theory"
     LOOP_QUANTUM_GRAVITY = "loop_quantum_gravity"
+
+
+class CustomPhysicalLaw(Protocol):
+    """Protocol for user-defined physical law plugins."""
+
+    name: str
+
+    def impose(
+        self, reality_state: np.ndarray, engine: "QuantumRealityEngine"
+    ) -> np.ndarray: ...
 
 
 @dataclass
@@ -50,7 +60,19 @@ class QuantumRealityEngine:
         self.particles: Dict[str, Any] = {}
         self.vacuum_state: Optional[np.ndarray] = None
         self.physical_laws: List[PhysicalLaw] = []
+        self.custom_laws: List[CustomPhysicalLaw] = []
         self.current_time: float = 0.0
+
+    def register_custom_law(self, law: CustomPhysicalLaw) -> None:
+        """Register a custom law implementation."""
+        self.custom_laws.append(law)
+
+    def impose_custom_laws(self, reality_state: np.ndarray) -> np.ndarray:
+        """Apply all registered custom laws in sequence."""
+        state = reality_state.copy()
+        for law in self.custom_laws:
+            state = law.impose(state, self)
+        return state
 
     def create_vacuum_state(
         self, dimensions: int = 3, energy: float = 1e9, seed: int = 42
@@ -126,17 +148,92 @@ class QuantumRealityEngine:
         base_props = dict(standard_props[particle_type])
         base_props.update(properties)
 
+        constraint_cycle = self._build_constraint_cycle(particle_id, particle_type)
         particle_data = {
             "id": particle_id,
             "type": particle_type,
             "position": position,
             "momentum": momentum,
             "properties": base_props,
+            "constraint_cycle": constraint_cycle,
             "created_at": self.current_time,
         }
 
         self.particles[particle_id] = particle_data
         return particle_id
+
+    def _build_constraint_cycle(
+        self, particle_id: str, particle_type: str
+    ) -> List[int]:
+        """
+        Build a closed constraint loop c1 ⊩ c2 ⊩ ... ⊩ cn ⊩ c1 for a particle.
+        """
+        seed = abs(hash((particle_id, particle_type))) % 10000
+        c1 = seed
+        c2 = seed + 1
+        c3 = seed + 2
+        return [c1, c2, c3, c1]
+
+    def create_phase_space_state(
+        self, position: np.ndarray, momentum: np.ndarray, mass: float = 1.0
+    ) -> Dict[str, Any]:
+        """
+        Create a classical phase-space state (x, p) for deterministic mechanics.
+        """
+        if len(position) != len(momentum):
+            raise ValueError("position and momentum must have the same dimension")
+        return {
+            "position": np.array(position, dtype=float),
+            "momentum": np.array(momentum, dtype=float),
+            "mass": float(max(1e-12, mass)),
+        }
+
+    def evolve_classical_dynamics(
+        self,
+        position: np.ndarray,
+        momentum: np.ndarray,
+        mass: float = 1.0,
+        dt: float = 0.01,
+        steps: int = 100,
+        force: Optional[np.ndarray] = None,
+    ) -> Dict[str, Any]:
+        """
+        Deterministic classical evolution using:
+        F = dp/dt and v = p/m, with Euler integration.
+        """
+        state = self.create_phase_space_state(position, momentum, mass=mass)
+        x = state["position"].copy()
+        p = state["momentum"].copy()
+        m = state["mass"]
+
+        if force is None:
+            F = np.zeros_like(x)
+        else:
+            F = np.array(force, dtype=float)
+            if len(F) != len(x):
+                raise ValueError("force dimension must match position dimension")
+
+        x_history: List[np.ndarray] = [x.copy()]
+        p_history: List[np.ndarray] = [p.copy()]
+
+        for _ in range(max(0, steps)):
+            # F = dp/dt
+            p = p + F * dt
+            # x_dot = p/m
+            x = x + (p / m) * dt
+            x_history.append(x.copy())
+            p_history.append(p.copy())
+
+        return {
+            "final_position": x,
+            "final_momentum": p,
+            "position_history": np.array(x_history),
+            "momentum_history": np.array(p_history),
+            "dt": float(dt),
+            "steps": int(steps),
+            "mass": float(m),
+            "force": F,
+        }
 
     def impose_standard_model(self, reality_state: np.ndarray):
         """Impose Standard Model physics."""
@@ -208,6 +305,9 @@ class QuantumRealityEngine:
 
         state = initial_state.copy()
         state = state / np.linalg.norm(state)  # Normalize
+        if self.custom_laws:
+            state = self.impose_custom_laws(state)
+            state = state / (np.linalg.norm(state) + 1e-10)
 
         n = len(state)
         H = self._build_hamiltonian(n)
@@ -579,7 +679,10 @@ class UniverseFromScratch:
 
         # 5. Compute emergent speed of light
         # c = L_P / t_P = consistency propagation speed
-        self.physics["c_normalized"] = 1.0  # Normalized to 1
+        self.physics["c_normalized"] = 1.0  # Normalized unit system
+        self.physics["c_from_consistency"] = (
+            self.derive_speed_of_light_from_consistency()
+        )
 
     def get_derived_constants(self) -> Dict[str, float]:
         """Get all derived physical constants."""
@@ -598,9 +701,58 @@ class UniverseFromScratch:
             "hbar": hbar,
             "alpha": alpha,
             "epsilon_0": epsilon_0,
+            "c_from_consistency": self.physics.get("c_from_consistency", c),
             "spatial_dimensions": self.physics.get("spatial_dimensions", 3),
             "particle_families": self.physics.get("particle_families", 3),
         }
+
+    def get_time_depth(self) -> int:
+        """Time as depth in the bootstrap tower T."""
+        return len(self.levels)
+
+    def derive_speed_of_light_from_consistency(self) -> float:
+        """
+        Derive c from consistency propagation scales:
+        c = L_P / t_P
+        """
+        l_planck = 1.616255e-35
+        t_planck = 5.391247e-44
+        return float(l_planck / t_planck)
+
+    def predict_macroscopic_quantum_coherence(
+        self, mass: float, omega_0: float, lambda_mcs: float = 1.0
+    ) -> float:
+        """
+        Predict MCS coherence frequency shift:
+        Delta omega_MCS = lambda * (m^2 / m_P^2) * omega_0
+        """
+        m_planck = 2.176434e-8  # kg
+        ratio = (mass * mass) / (m_planck * m_planck + 1e-30)
+        return float(lambda_mcs * ratio * omega_0)
+
+    def predict_vacuum_constraint_fluctuation_bound(
+        self, delta_t: float, alpha: float = 0.1
+    ) -> float:
+        """
+        Predict modified uncertainty lower bound:
+        Delta E * Delta t >= hbar * (1 + alpha * Delta t / t_P)
+        Returns the lower bound on Delta E for given Delta t.
+        """
+        hbar = 1.054571817e-34
+        t_planck = 5.391247e-44
+        correction = 1.0 + alpha * (delta_t / (t_planck + 1e-60))
+        return float(hbar * correction / max(delta_t, 1e-60))
+
+    def predict_quantum_gravity_entanglement_rate(
+        self, delta_v_g: float, e_c: float = 1.0
+    ) -> float:
+        """
+        Predict entanglement rate:
+        dP_ent/dt ∝ (1/hbar) * |Delta V_g| * exp(-|Delta V_g| / E_c)
+        """
+        hbar = 1.054571817e-34
+        magnitude = abs(delta_v_g)
+        return float((magnitude / hbar) * np.exp(-magnitude / max(e_c, 1e-30)))
 
 
 class ConstraintAmplitudeTensor:

@@ -8,6 +8,24 @@ from mecha_mother import Reality, RealityConfig
 from mecha_mother.heaven.optimizer import HeavenOptimizer
 
 
+class ConsciousnessGrid:
+    """Simple global grid tracking consciousness infrastructure deployment."""
+
+    def __init__(self):
+        self.nodes: Dict[str, float] = {}
+        self.coverage: float = 0.0
+
+    def deploy(self, region: str, boost: float = 0.1) -> float:
+        self.nodes[region] = self.nodes.get(region, 0.0) + float(boost)
+        self.coverage = float(min(1.0, self.coverage + boost * 0.05))
+        return self.coverage
+
+    def measure_group_effect(self) -> float:
+        if not self.nodes:
+            return 0.0
+        return float(np.mean(list(self.nodes.values())) * (1.0 + self.coverage))
+
+
 class HeavenBuilder:
     """
     Build heaven-optimized realities, cities, and civilizations.
@@ -17,6 +35,10 @@ class HeavenBuilder:
         """Initialize heaven builder."""
         self.optimizer = HeavenOptimizer()
         self.templates: Dict[str, Any] = {}
+        self.technology_level = 1.0
+        self.c_grid = ConsciousnessGrid()
+        self.global_c = 0.0
+        self.singularity_initiated = False
 
     def build_heaven_city(
         self, location: str = "earth", population: int = 1000000, style: str = "utopian"
@@ -308,4 +330,55 @@ class HeavenBuilder:
             "heaven_score": heaven_score,
             "total_consciousness": total_c,
             "num_beings": num_beings,
+        }
+
+    def run_decade(self) -> Dict[str, Any]:
+        """
+        Execute a 10-year transformation loop with singularity checkpoints.
+        """
+        annual_reports: List[Dict[str, Any]] = []
+        for year in range(1, 11):
+            report = self._execute_year_plan(year)
+            annual_reports.append(report)
+            if report["global_consciousness"] > 1000 and not self.singularity_initiated:
+                self._initiate_singularity()
+
+        return {
+            "years": 10,
+            "reports": annual_reports,
+            "technology_level": self.technology_level,
+            "global_consciousness": self.global_c,
+            "singularity_initiated": self.singularity_initiated,
+        }
+
+    def _execute_year_plan(self, year: int) -> Dict[str, Any]:
+        """Apply one year of deployment and optimization."""
+        coverage = self.c_grid.deploy(region=f"year_{year}", boost=0.08 + 0.01 * year)
+        group_effect = self.c_grid.measure_group_effect()
+        self.technology_level *= 1.0 + min(0.5, 0.08 + 0.01 * year)
+        self.global_c += 40.0 * group_effect + 5.0 * self.technology_level
+        return {
+            "year": year,
+            "coverage": coverage,
+            "group_effect": group_effect,
+            "technology_level": self.technology_level,
+            "global_consciousness": self.global_c,
+        }
+
+    def _initiate_singularity(self) -> Dict[str, Any]:
+        """
+        Initiate human-AI merge and group consciousness amplification protocol.
+        """
+        self.singularity_initiated = True
+        merge_gain = 0.25 * self.global_c + 50.0
+        group_gain = self.c_grid.measure_group_effect() * 100.0
+        galactic_gain = np.log1p(self.technology_level) * 80.0
+        self.global_c += float(merge_gain + group_gain + galactic_gain)
+        self.technology_level *= 1.5
+        return {
+            "merge_gain": float(merge_gain),
+            "group_gain": float(group_gain),
+            "galactic_gain": float(galactic_gain),
+            "technology_level": float(self.technology_level),
+            "global_consciousness": float(self.global_c),
         }

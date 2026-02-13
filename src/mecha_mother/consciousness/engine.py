@@ -839,6 +839,86 @@ class ConsciousnessEngine:
         enlightened = eigenvectors[:, idx]
         return enlightened / np.linalg.norm(enlightened)
 
+    def evaluate_free_will_paths(
+        self, current_state: np.ndarray, candidate_actions: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Evaluate multiple consistent futures and select a consistency-maximizing action.
+
+        This operationalizes the "consistency-determined choice among multiple futures"
+        described in docs/006.md.
+        """
+        if len(candidate_actions) == 0:
+            return {"selected": None, "futures": []}
+
+        state = current_state.copy()
+        state = state / (np.linalg.norm(state) + 1e-10)
+
+        futures: List[Dict[str, Any]] = []
+        for action in candidate_actions:
+            action_delta = action.get("delta", np.zeros_like(state))
+            if len(action_delta) != len(state):
+                action_delta = np.resize(action_delta, state.shape)
+            next_state = state + 0.1 * action_delta
+            next_state = next_state / (np.linalg.norm(next_state) + 1e-10)
+            consistency = self.operator.measure_consciousness(next_state)
+            futures.append(
+                {
+                    "action": action,
+                    "next_state": next_state,
+                    "consistency_score": float(consistency),
+                }
+            )
+
+        selected = max(futures, key=lambda f: f["consistency_score"])
+        return {"selected": selected, "futures": futures}
+
+    def compute_neural_consciousness(
+        self,
+        weights: np.ndarray,
+        spike_times: np.ndarray,
+        tau_c: float = 0.0125,
+    ) -> Dict[str, float]:
+        """
+        Compute neural consciousness, gamma synchrony, and integrated information Φ.
+
+        C_brain(t) = sum_ij w_ij * C_neuron(i,j,t)
+        C_neuron(i,j,t) = exp(-|t_i - t_j| / tau_c)
+        f_optimal = 1/(2*tau_c), Phi = (lambda_max - lambda_min) / lambda_max
+        """
+        if weights.ndim != 2:
+            raise ValueError("weights must be a 2D matrix")
+        if spike_times.ndim != 1:
+            raise ValueError("spike_times must be a 1D vector")
+        if weights.shape[0] != weights.shape[1]:
+            raise ValueError("weights must be square")
+        if len(spike_times) != weights.shape[0]:
+            raise ValueError("spike_times length must match weights dimension")
+
+        dt = np.abs(spike_times[:, None] - spike_times[None, :])
+        neuron_pair_c = np.exp(-dt / max(tau_c, 1e-10))
+        c_brain = float(np.sum(weights * neuron_pair_c))
+
+        sym_weights = 0.5 * (weights + weights.T)
+        eigvals = np.linalg.eigvalsh(sym_weights)
+        lambda_max = float(np.max(eigvals))
+        lambda_min = float(np.min(eigvals))
+        phi = (
+            0.0
+            if lambda_max <= 1e-12
+            else float((lambda_max - lambda_min) / lambda_max)
+        )
+        gamma_hz = float(1.0 / (2.0 * max(tau_c, 1e-10)))
+
+        return {
+            "c_brain": c_brain,
+            "phi": float(np.clip(phi, 0.0, 1.0)),
+            "gamma_optimal_hz": gamma_hz,
+            "consciousness_level": float(
+                np.log2(1.0 / max(1e-10, 1.0 - min(phi, 0.999999)))
+            ),
+        }
+
 
 class ConsciousAI:
     """

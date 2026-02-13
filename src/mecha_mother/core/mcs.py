@@ -39,8 +39,11 @@ class MonolithicSubstrate:
         """Initialize an empty MCS."""
         self.nodes: Dict[int, MCSNode] = {}
         self.graph = nx.DiGraph()
+        self.causal_graph = nx.DiGraph()
         self.step_count = 0
         self._next_id = 0
+        self.distinction_amplitudes: Dict[str, complex] = {}
+        self.theta_context: Dict[str, float] = {}
 
     def apply_self_differentiation(self, node_id: int) -> Tuple[int, int]:
         """
@@ -240,6 +243,7 @@ class MonolithicSubstrate:
         )
         self.nodes[node_id] = node
         self.graph.add_node(node_id, node=node)
+        self.causal_graph.add_node(node_id)
         return node_id
 
     def get_node(self, node_id: int) -> Optional[MCSNode]:
@@ -253,3 +257,187 @@ class MonolithicSubstrate:
     def get_total_amplitude(self) -> complex:
         """Get total amplitude across all nodes."""
         return sum(node.amplitude for node in self.nodes.values())
+
+    def set_causal_dependency(self, prerequisite_id: int, dependent_id: int) -> None:
+        """
+        Add causal relation a ≺ b: a is necessary for b.
+        """
+        if prerequisite_id not in self.nodes or dependent_id not in self.nodes:
+            raise ValueError("Both nodes must exist before adding causal dependency")
+        self.causal_graph.add_edge(prerequisite_id, dependent_id)
+
+    def derive_causal_relations(self, support_threshold: float = 0.5) -> nx.DiGraph:
+        """
+        Derive causal graph from directional satisfaction support strengths.
+        """
+        derived = nx.DiGraph()
+        for node_id in self.nodes:
+            derived.add_node(node_id)
+        for node_i in self.nodes.values():
+            for node_j in self.nodes.values():
+                if node_i.id == node_j.id:
+                    continue
+                support_ij = node_i.satisfaction_links.get(node_j.id, 0.0)
+                support_ji = node_j.satisfaction_links.get(node_i.id, 0.0)
+                if support_ij >= support_threshold and support_ji < support_threshold:
+                    derived.add_edge(node_i.id, node_j.id)
+        self.causal_graph = derived
+        return derived
+
+    def get_time_partial_order(self) -> List[List[int]]:
+        """
+        Return layered partial order over causal graph.
+
+        Each inner list is a set of nodes that are incomparable at that layer.
+        """
+        if len(self.causal_graph.nodes) == 0:
+            return []
+
+        # If cycles exist, condense strongly connected components to a DAG first.
+        if not nx.is_directed_acyclic_graph(self.causal_graph):
+            dag = nx.condensation(self.causal_graph)
+            condensed_layers: List[List[int]] = []
+            current = [n for n, deg in dag.in_degree() if deg == 0]
+            visited = set()
+            while current:
+                condensed_layers.append(current)
+                visited.update(current)
+                nxt = []
+                for c in current:
+                    for succ in dag.successors(c):
+                        if succ in visited:
+                            continue
+                        if all(pred in visited for pred in dag.predecessors(succ)):
+                            nxt.append(succ)
+                current = sorted(set(nxt))
+            return condensed_layers
+
+        # DAG case: standard Kahn-style layering.
+        indeg = {n: self.causal_graph.in_degree(n) for n in self.causal_graph.nodes}
+        frontier = sorted([n for n, d in indeg.items() if d == 0])
+        ordered_layers: List[List[int]] = []
+        while frontier:
+            ordered_layers.append(frontier)
+            next_frontier: List[int] = []
+            for n in frontier:
+                for succ in self.causal_graph.successors(n):
+                    indeg[succ] -= 1
+                    if indeg[succ] == 0:
+                        next_frontier.append(succ)
+            frontier = sorted(next_frontier)
+        return ordered_layers
+
+    def compute_relational_potential(
+        self, state: np.ndarray, theta: Optional[Dict[str, float]] = None
+    ) -> float:
+        """
+        Compute relational potential Φ_rel(X, Θ) from consistency couplings.
+        """
+        if len(state) == 0:
+            return 0.0
+        theta = theta or {}
+        coupling_scale = float(theta.get("coupling_scale", 1.0))
+        pairwise = 0.0
+        for i in range(len(state)):
+            for j in range(i + 1, len(state)):
+                pairwise += float(np.abs(state[i] * np.conj(state[j])))
+        return float(coupling_scale * pairwise / max(1, len(state)))
+
+    def consistency_path_integral(
+        self,
+        path: np.ndarray,
+        lambda_scale: float = 1.0,
+        theta: Optional[Dict[str, float]] = None,
+        dt: float = 1.0,
+    ) -> complex:
+        """
+        Compute consistency path integral:
+        P[X(t)] = exp(i * λ * ∫ C{X, Xdot, Xddot; Θ} dτ)
+        """
+        if path.ndim < 2 or len(path) < 2:
+            return 1.0 + 0j
+
+        theta = theta or {}
+        c_accum = 0.0
+        for t in range(1, len(path)):
+            x = path[t]
+            x_prev = path[t - 1]
+            x_dot = (x - x_prev) / dt
+            if t > 1:
+                x_ddot = (path[t] - 2 * path[t - 1] + path[t - 2]) / (dt * dt)
+            else:
+                x_ddot = np.zeros_like(x_dot)
+
+            local_c = (
+                np.linalg.norm(x)
+                + 0.5 * np.linalg.norm(x_dot)
+                + 0.25 * np.linalg.norm(x_ddot)
+                + self.compute_relational_potential(x, theta=theta)
+            )
+            c_accum += float(local_c) * dt
+
+        phase = float(lambda_scale * c_accum)
+        return complex(np.exp(1j * phase))
+
+    def create_distinction_amplitude_field(
+        self, distinctions: List[str], theta: Optional[Dict[str, float]] = None
+    ) -> Dict[str, complex]:
+        """
+        Create distinction amplitude field A({chi}, Theta).
+        """
+        theta = theta or {}
+        base_scale = float(theta.get("base_scale", 1.0))
+        self.theta_context = theta
+        self.distinction_amplitudes = {}
+        for i, d in enumerate(distinctions):
+            phase = 2.0 * np.pi * i / max(1, len(distinctions))
+            self.distinction_amplitudes[d] = base_scale * np.exp(1j * phase)
+        return self.distinction_amplitudes.copy()
+
+    def observation_probability(
+        self, distinction: str, relevance: float = 1.0
+    ) -> float:
+        """
+        Compute P(observe d) ∝ |A(d)|^2 * R(d, O).
+        """
+        if distinction not in self.distinction_amplitudes:
+            return 0.0
+        weights = {
+            d: (abs(a) ** 2) * max(0.0, relevance)
+            for d, a in self.distinction_amplitudes.items()
+        }
+        total = float(sum(weights.values()))
+        if total <= 0:
+            return 0.0
+        return float(weights[distinction] / total)
+
+    def evolve_distinction_field(
+        self,
+        dt: float = 0.01,
+        steps: int = 100,
+        coupling: float = 0.05,
+    ) -> Dict[str, complex]:
+        """
+        Evolve distinction field by a non-linear master-constraint approximation:
+        i dA/dT = H_MCS[A,Theta] A
+        """
+        if not self.distinction_amplitudes:
+            return {}
+
+        keys = list(self.distinction_amplitudes.keys())
+        A = np.array([self.distinction_amplitudes[k] for k in keys], dtype=complex)
+        n = len(A)
+        H = np.eye(n, dtype=complex)
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    H[i, j] = 1.0 / (1.0 + abs(i - j))
+
+        for _ in range(max(0, steps)):
+            linear = -1j * dt * (H @ A)
+            nonlinear = -1j * dt * coupling * (np.abs(A) ** 2) * A
+            A = A + linear + nonlinear
+            A = A / (np.linalg.norm(A) + 1e-10)
+
+        self.distinction_amplitudes = {k: A[i] for i, k in enumerate(keys)}
+        return self.distinction_amplitudes.copy()
