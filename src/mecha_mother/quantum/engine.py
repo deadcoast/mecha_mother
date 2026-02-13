@@ -304,6 +304,15 @@ class QuantumRealityEngine:
         Returns:
             Particle ID
         """
+        pos = np.asarray(position, dtype=float).reshape(-1)
+        mom = np.asarray(momentum, dtype=float).reshape(-1)
+        if len(pos) == 0 or len(mom) == 0:
+            raise ValueError("position and momentum must be non-empty vectors")
+        if len(pos) != len(mom):
+            raise ValueError("position and momentum must have matching dimensions")
+        if not np.all(np.isfinite(pos)) or not np.all(np.isfinite(mom)):
+            raise ValueError("position and momentum must be finite values")
+
         # Standard particle properties
         standard_props: Dict[str, Dict[str, float]] = {
             "electron": {"mass": 0.511, "charge": -1, "spin": 0.5},
@@ -325,8 +334,8 @@ class QuantumRealityEngine:
         particle_data = {
             "id": particle_id,
             "type": particle_type,
-            "position": position,
-            "momentum": momentum,
+            "position": pos,
+            "momentum": mom,
             "properties": base_props,
             "constraint_cycle": constraint_cycle,
             "created_at": self.current_time,

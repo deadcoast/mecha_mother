@@ -36,6 +36,16 @@ def test_heaven_optimizer_city():
     assert result["population"] == 100000
 
 
+def test_heaven_optimizer_city_population_validation():
+    """City optimization should reject non-positive populations."""
+    optimizer = HeavenOptimizer()
+    try:
+        optimizer.optimize_city("bad_city", population=0)
+        assert False, "Expected ValueError for zero population"
+    except ValueError:
+        pass
+
+
 def test_cscanner_integrated_information_nontrivial_state():
     """Integrated information should be finite and positive for nontrivial states."""
     scanner = CScanner()
@@ -43,6 +53,35 @@ def test_cscanner_integrated_information_nontrivial_state():
     phi = scanner.compute_integrated_information(state)
     assert 0.0 <= phi <= 1.0
     assert phi > 0.0
+
+
+def test_heaven_compute_h_handles_empty_preferences():
+    """Heaven score computation should be stable with empty preference maps."""
+    optimizer = HeavenOptimizer()
+    params = np.array([1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5], dtype=float)
+    h = optimizer._compute_h(10.0, 5.0, params, {})
+    assert np.isfinite(h)
+    assert h >= 0.0
+
+
+def test_heaven_compute_h_pref_alignment_increases_score():
+    """Better preference alignment should increase computed heaven score."""
+    optimizer = HeavenOptimizer()
+    c = 10.0
+    b = 8.0
+    prefs = {
+        "lighting_warmth": 0.8,
+        "sound_level": 0.2,
+        "space_openness": 0.9,
+        "nature_presence": 0.7,
+        "social_density": 0.4,
+    }
+    well_aligned = np.array([1.0, 1.0, 0.8, 0.2, 0.9, 0.7, 0.4], dtype=float)
+    misaligned = np.array([1.0, 1.0, 0.1, 0.9, 0.1, 0.1, 0.9], dtype=float)
+
+    h_good = optimizer._compute_h(c, b, well_aligned, prefs)
+    h_bad = optimizer._compute_h(c, b, misaligned, prefs)
+    assert h_good > h_bad
 
 
 def test_heaven_builder_city():

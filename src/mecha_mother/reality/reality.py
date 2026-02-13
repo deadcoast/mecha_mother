@@ -236,9 +236,16 @@ class Reality:
             raise RuntimeError("Reality not active")
 
         particle_id = f"particle_{len(self.quantum_engine.particles)}"
+        position_vec = np.asarray(position, dtype=float).reshape(-1)
+        if len(position_vec) == 0:
+            raise ValueError("position must be a non-empty vector")
 
         if momentum is None:
-            momentum = np.zeros(self._active_dimensions())
+            momentum = np.zeros_like(position_vec)
+        else:
+            momentum = np.asarray(momentum, dtype=float).reshape(-1)
+            if len(momentum) != len(position_vec):
+                raise ValueError("momentum must match position dimension")
 
         if self.reality_state_vector is None:
             raise RuntimeError("Reality state not initialized")
@@ -246,7 +253,7 @@ class Reality:
         self.quantum_engine.create_particle(
             particle_id=particle_id,
             particle_type=particle_type,
-            position=position,
+            position=position_vec,
             momentum=momentum,
             properties=properties or {},
             reality_state=self.reality_state_vector,
@@ -374,6 +381,9 @@ class Reality:
                 )
                 if not repaired:
                     return False
+                new_value = self.consistency_resolver.get_repaired_value(
+                    constant_name, new_value
+                )
             else:
                 return False
 

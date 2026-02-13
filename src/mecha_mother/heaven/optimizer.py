@@ -158,9 +158,12 @@ class HeavenOptimizer:
             Dictionary with optimization results and transformation
         """
         # Measure current state
-        c_current = self._measure_current_consciousness(occupants, consciousness_field)
-        b_current = self.aesthetics_engine.compute_env_beauty(location)
-        h_current = np.sqrt(c_current * b_current)
+        c_current = max(
+            0.0,
+            float(self._measure_current_consciousness(occupants, consciousness_field)),
+        )
+        b_current = max(0.0, float(self.aesthetics_engine.compute_env_beauty(location)))
+        h_current = float(np.sqrt(max(0.0, c_current * b_current)))
 
         # Extract preferences and types
         preferences = self._extract_preferences(occupants)
@@ -183,7 +186,7 @@ class HeavenOptimizer:
         # Apply transformation (compute new values)
         c_new = c_current * transformation["c_multiplier"]
         b_new = b_current * transformation["b_multiplier"]
-        h_new = np.sqrt(c_new * b_new)
+        h_new = float(np.sqrt(max(0.0, c_new * b_new)))
 
         return {
             "c_current": c_current,
@@ -348,7 +351,8 @@ class HeavenOptimizer:
             # Accept/reject based on Metropolis criterion
             delta_h = h_new - h_current
 
-            if delta_h > 0 or np.random.random() < np.exp(delta_h / temperature):
+            temp_safe = max(1e-6, temperature)
+            if delta_h > 0 or np.random.random() < np.exp(delta_h / temp_safe):
                 params = new_params
                 if h_new > best_h:
                     best_h = h_new
@@ -370,17 +374,22 @@ class HeavenOptimizer:
         # Preference alignment bonus
         pref_alignment = 0.0
         pref_values = list(preferences.values())
+        pref_count = 0
         for i, pref in enumerate(pref_values[:5]):
             if i + 2 < len(params):
                 alignment = 1.0 - abs(params[i + 2] - pref)
                 pref_alignment += alignment
-        pref_alignment /= 5.0
+                pref_count += 1
+        if pref_count > 0:
+            pref_alignment /= pref_count
+        else:
+            pref_alignment = 0.5
 
         # Compute with preference bonus
         c_eff = c * c_mult * (1 + 0.1 * pref_alignment)
         b_eff = b * b_mult * (1 + 0.1 * pref_alignment)
 
-        return np.sqrt(c_eff * b_eff)
+        return float(np.sqrt(max(0.0, c_eff * b_eff)))
 
     def _params_to_transformation(
         self, params: np.ndarray, preferences: Dict[str, float]
@@ -454,20 +463,26 @@ class HeavenOptimizer:
         subject to: sum resources_i <= total_resources
                    C_i >= C_min for all i
         """
+        if population <= 0:
+            raise ValueError("population must be positive")
+
+        pop_f = float(population)
+
         # Estimate current metrics
         c_current = (
-            consciousness_field.total_consciousness()
+            float(consciousness_field.total_consciousness())
             if consciousness_field
-            else population * 10.0
+            else pop_f * 10.0
         )
         b_current = 5.0  # Default city beauty
 
         # City optimization factors based on population scale
-        scale_factor = 1.0 + 0.05 * np.log(population)
+        log_pop = np.log1p(pop_f)
+        scale_factor = 1.0 + 0.05 * log_pop
 
         # Optimal resource distribution
         # More consciousness per capita at larger scale (infrastructure efficiency)
-        c_per_capita_boost = 1.0 + 0.02 * np.log(population)
+        c_per_capita_boost = 1.0 + 0.02 * log_pop
 
         c_new = c_current * scale_factor * c_per_capita_boost
         b_new = b_current * scale_factor * 1.4  # Beauty scales with investment
@@ -482,7 +497,7 @@ class HeavenOptimizer:
             "b_new": b_new,
             "heaven_score": np.sqrt(c_new * b_new),
             "population": population,
-            "c_per_capita": c_new / population,
+            "c_per_capita": c_new / pop_f,
             "optimization_method": "resource_allocation",
         }
 

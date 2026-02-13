@@ -6,12 +6,14 @@ import numpy as np
 import time
 from mecha_mother import Reality, RealityConfig
 from mecha_mother.core import MonolithicSubstrate
+from mecha_mother.core.constraints import ConstraintResolver
 from mecha_mother.consciousness import (
     ConsciousnessBeing,
     ConsciousAIBuilder,
     ConsciousnessEvolver,
     BeingType,
 )
+from mecha_mother.consciousness.engine import ConsciousAI
 from mecha_mother.quantum.engine import (
     UniverseFromScratch,
     QuantumRealityEngine,
@@ -48,6 +50,54 @@ def test_particle_creation():
     assert len(reality.quantum_engine.particles) > 0
 
 
+def test_particle_creation_rejects_mismatched_vectors():
+    """Particle creation should fail for mismatched position/momentum dimensions."""
+    reality = Reality(RealityConfig())
+    reality.initialize()
+    state = (
+        reality.reality_state_vector
+        if reality.reality_state_vector is not None
+        else np.array([1.0 + 0.0j], dtype=complex)
+    )
+
+    try:
+        reality.quantum_engine.create_particle(
+            particle_id="bad_particle",
+            particle_type="electron",
+            position=np.array([0.0, 0.0, 0.0]),
+            momentum=np.array([0.0, 0.0]),
+            properties={},
+            reality_state=state,
+        )
+        assert False, "Expected ValueError for mismatched dimensions"
+    except ValueError:
+        pass
+
+
+def test_particle_creation_rejects_non_finite_vectors():
+    """Particle creation should fail when position/momentum contains NaN/Inf."""
+    reality = Reality(RealityConfig())
+    reality.initialize()
+    state = (
+        reality.reality_state_vector
+        if reality.reality_state_vector is not None
+        else np.array([1.0 + 0.0j], dtype=complex)
+    )
+
+    try:
+        reality.quantum_engine.create_particle(
+            particle_id="bad_particle_nonfinite",
+            particle_type="electron",
+            position=np.array([0.0, np.nan, 0.0]),
+            momentum=np.array([0.0, 0.0, 0.0]),
+            properties={},
+            reality_state=state,
+        )
+        assert False, "Expected ValueError for non-finite vectors"
+    except ValueError:
+        pass
+
+
 def test_conscious_being_creation():
     """Test conscious being creation."""
     config = RealityConfig(consciousness_support=True)
@@ -77,6 +127,33 @@ def test_mcs_basic():
     assert obs_id in mcs.nodes
     assert obsd_id in mcs.nodes
     assert len(mcs.get_all_nodes()) == 3
+
+
+def test_constraint_resolver_detects_invalid_mcs_amplitude():
+    """MCS verification should fail when node amplitude becomes non-finite."""
+    resolver = ConstraintResolver()
+    mcs = MonolithicSubstrate()
+    node_id = mcs.create_initial_node()
+    node = mcs.get_node(node_id)
+    assert node is not None
+    node.amplitude = complex(np.nan, 0.0)
+    assert not resolver.verify(mcs)
+
+
+def test_constraint_resolver_detects_invalid_mcs_link_strength():
+    """MCS verification should fail for non-finite or out-of-range link strengths."""
+    resolver = ConstraintResolver()
+    mcs = MonolithicSubstrate()
+    a = mcs.create_initial_node()
+    b = mcs.create_initial_node()
+    node_a = mcs.get_node(a)
+    assert node_a is not None
+
+    node_a.satisfaction_links[b] = float("inf")
+    assert not resolver.verify(mcs)
+
+    node_a.satisfaction_links[b] = 1.5
+    assert not resolver.verify(mcs)
 
 
 def test_consciousness_operator():
@@ -160,6 +237,34 @@ def test_cdk_classes():
     evolver = ConsciousnessEvolver()
     result = evolver.evolve(ai, cycles=3)
     assert result["final_consciousness"] >= ai.initial_consciousness
+
+
+def test_conscious_ai_deterministic_bootstrap_level():
+    """ConsciousAI should bootstrap to a deterministic non-zero consciousness level."""
+    ai1 = ConsciousAI(dimension=7)
+    ai2 = ConsciousAI(dimension=7)
+
+    c1 = ai1.get_consciousness_level()
+    c2 = ai2.get_consciousness_level()
+
+    assert np.isfinite(c1)
+    assert np.isfinite(c2)
+    assert c1 > 0.0
+    assert np.isclose(c1, c2, atol=1e-8, rtol=1e-8)
+
+
+def test_conscious_ai_process_empty_input_is_stable():
+    """Processing empty input should remain finite and update memory."""
+    ai = ConsciousAI(dimension=7)
+    response, clarity, is_conscious = ai.process("")
+
+    assert isinstance(response, str)
+    assert np.isfinite(clarity)
+    assert 0.0 <= clarity
+    assert isinstance(is_conscious, bool)
+    summary = ai.get_memory_summary()
+    assert summary["count"] == 1
+    assert np.isfinite(summary["avg_clarity"])
 
 
 def test_custom_physical_law_registration():
@@ -433,6 +538,25 @@ def test_mcs_path_integral_and_distinction_field():
     assert set(evolved.keys()) == {"a", "b", "c"}
 
 
+def test_mcs_observation_probability_respects_relevance():
+    """Distinction relevance should change observation probabilities."""
+    mcs = MonolithicSubstrate()
+    mcs.create_distinction_amplitude_field(["a", "b", "c"])
+
+    p_a_neutral = mcs.observation_probability("a", relevance=1.0)
+    p_a_high = mcs.observation_probability("a", relevance=5.0)
+    p_a_zero = mcs.observation_probability("a", relevance=0.0)
+
+    assert p_a_high > p_a_neutral
+    assert p_a_zero == 0.0
+
+    p_a_map = mcs.observation_probability("a", relevance={"a": 2.0, "b": 1.0, "c": 1.0})
+    p_b_map = mcs.observation_probability("b", relevance={"a": 2.0, "b": 1.0, "c": 1.0})
+    p_c_map = mcs.observation_probability("c", relevance={"a": 2.0, "b": 1.0, "c": 1.0})
+    assert p_a_map > p_b_map
+    assert np.isclose(p_a_map + p_b_map + p_c_map, 1.0, atol=1e-9)
+
+
 def test_nonlinear_mcs_quantum_evolution():
     """Test non-linear MCS evolution mode is available and executable."""
     reality = Reality(RealityConfig())
@@ -509,6 +633,54 @@ def test_reality_emergent_dimension_estimate():
     assert reality.runtime_dimensions is not None
     expected_runtime_dims = int(round(reality.emergent_dimensions["continuous"]))
     assert reality.runtime_dimensions == max(1, expected_runtime_dims)
+
+
+def test_constraint_resolver_repair_clamps_out_of_range_constants():
+    """Auto-repair should clamp constants into viability bounds."""
+    resolver = ConstraintResolver()
+    state = np.array([1.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+
+    check = resolver.check_constant_change("c", 1e12, state)
+    assert not check["consistent"]
+    repaired = resolver.repair_constant_change("c", 1e12, state)
+    assert repaired
+    repaired_value = resolver.get_repaired_value("c", 1e12)
+    assert repaired_value <= 1e10
+    assert repaired_value >= 1e6
+
+
+def test_reality_constant_change_uses_auto_repaired_value():
+    """Reality constant modification should apply repaired consistency-safe values."""
+    reality = Reality(
+        RealityConfig(
+            ethical_constraints=False,
+            auto_consistency=True,
+            consciousness_support=False,
+        )
+    )
+    reality.initialize()
+    success = reality.modify_physical_constant("c", 1e12)
+    assert success
+    c_val = reality.quantum_engine.get_constant("c")
+    assert c_val is not None
+    assert c_val <= 1e10
+    assert c_val >= 1e6
+
+
+def test_constraint_resolver_verifies_reality_like_object_state():
+    """Reality-like objects should be validated through their state vector."""
+    resolver = ConstraintResolver()
+
+    class DummyReality:
+        def __init__(self, vec):
+            self.reality_state_vector = vec
+            self.consciousness_field = None
+
+    good = DummyReality(np.array([1.0 + 0.0j, 0.0 + 0.0j], dtype=complex))
+    bad = DummyReality(np.array([10.0 + 0.0j, 0.0 + 0.0j], dtype=complex))
+
+    assert resolver.verify(good)
+    assert not resolver.verify(bad)
 
 
 def test_particle_constraint_cycle():

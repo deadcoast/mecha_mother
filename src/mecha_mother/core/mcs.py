@@ -6,7 +6,7 @@ constraint satisfaction network.
 """
 
 import numpy as np
-from typing import Dict, Set, Tuple, List, Optional
+from typing import Dict, Set, Tuple, List, Optional, Union, Mapping
 from dataclasses import dataclass, field
 import networkx as nx
 
@@ -395,15 +395,28 @@ class MonolithicSubstrate:
         return self.distinction_amplitudes.copy()
 
     def observation_probability(
-        self, distinction: str, relevance: float = 1.0
+        self,
+        distinction: str,
+        relevance: Union[float, Mapping[str, float]] = 1.0,
     ) -> float:
         """
         Compute P(observe d) ∝ |A(d)|^2 * R(d, O).
         """
         if distinction not in self.distinction_amplitudes:
             return 0.0
+
+        if isinstance(relevance, Mapping):
+            relevance_map: Dict[str, float] = {
+                d: max(0.0, float(relevance.get(d, 1.0)))
+                for d in self.distinction_amplitudes
+            }
+        else:
+            target_rel = max(0.0, float(relevance))
+            relevance_map = {d: 1.0 for d in self.distinction_amplitudes}
+            relevance_map[distinction] = target_rel
+
         weights = {
-            d: (abs(a) ** 2) * max(0.0, relevance)
+            d: (abs(a) ** 2) * relevance_map[d]
             for d, a in self.distinction_amplitudes.items()
         }
         total = float(sum(weights.values()))

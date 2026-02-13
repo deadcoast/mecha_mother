@@ -156,6 +156,20 @@ def test_spacetime_ethics_without_consciousness_field():
     assert isinstance(ok, bool)
 
 
+def test_constant_ethics_without_consciousness_field():
+    """Constant modifications should not crash with ethics on and no consciousness field."""
+    reality = Reality(
+        RealityConfig(
+            consciousness_support=False,
+            ethical_constraints=True,
+            beauty_optimization=False,
+        )
+    )
+    reality.initialize()
+    ok = reality.modify_physical_constant("alpha", 1.0 / 137.0)
+    assert isinstance(ok, bool)
+
+
 def test_constant_modification_risk_scales_with_deviation():
     """Ethical constant check should be stricter for large deviations."""
     engine = EthicsEngine()
