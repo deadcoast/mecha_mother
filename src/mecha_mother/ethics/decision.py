@@ -64,7 +64,7 @@ class EthicalDecisionEngine:
 
         # Compute moral gradient
         if hasattr(current_state, "consciousness_field"):
-            gradient = self.ethics_engine.moral_operator.compute_moral_gradient(
+            gradient = self.ethics_engine.compute_moral_gradient(
                 state_vector=getattr(current_state, "reality_state_vector", None),
                 consciousness_field=current_state.consciousness_field,
                 beings=beings,

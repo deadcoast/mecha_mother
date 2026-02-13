@@ -60,10 +60,12 @@ class MoralFieldOperator:
             Moral gradient vector
         """
         if state_vector is None:
-            state_vector = np.random.randn(self.dim) + 1j * np.random.randn(self.dim)
-            state_vector = state_vector / np.linalg.norm(state_vector)
+            state = np.random.randn(self.dim) + 1j * np.random.randn(self.dim)
+            state = state / np.linalg.norm(state)
+        else:
+            state = state_vector
 
-        n_dim = len(state_vector)
+        n_dim = len(state)
         gradient = np.zeros(n_dim, dtype=complex)
 
         # Finite difference approximation
@@ -71,11 +73,11 @@ class MoralFieldOperator:
 
         for i in range(n_dim):
             # Perturb dimension i
-            state_plus = state_vector.copy()
+            state_plus = state.copy()
             state_plus[i] += epsilon
             state_plus = state_plus / np.linalg.norm(state_plus)
 
-            state_minus = state_vector.copy()
+            state_minus = state.copy()
             state_minus[i] -= epsilon
             state_minus = state_minus / np.linalg.norm(state_minus)
 
@@ -472,34 +474,6 @@ class EthicalDecisionEngine:
         Returns:
             Analysis of the trolley problem
         """
-        # Create beings
-        beings_a = [
-            {"type": "human", "weight": consciousness_per_person}
-            for _ in range(n_track_a)
-        ]
-        beings_b = [
-            {"type": "human", "weight": consciousness_per_person}
-            for _ in range(n_track_b)
-        ]
-        beings_a + beings_b
-
-        # Option A: Do nothing - track A dies
-        {
-            "type": "inaction",
-            "name": "do_nothing",
-            "effect_vector": np.array([-consciousness_per_person * n_track_a]),
-            "intention_to_kill": 0.0,
-        }
-
-        # Option B: Pull lever - track B dies
-        # Includes corruption of killer's consciousness
-        {
-            "type": "action",
-            "name": "pull_lever",
-            "effect_vector": np.array([-consciousness_per_person * n_track_b]),
-            "intention_to_kill": 1.0,  # Deliberate action causing death
-        }
-
         # Compute moral values
         # A: -5 (five die)
         value_a = -n_track_a * consciousness_per_person
@@ -509,13 +483,6 @@ class EthicalDecisionEngine:
         corruption = -self.corruption_coefficient * np.log(1.0 + 1.0)
         value_b = value_b_base + corruption
 
-        # Option C: Create new track (MCS solution)
-        {
-            "type": "action",
-            "name": "create_new_track",
-            "effect_vector": np.array([0.0]),  # No deaths
-            "intention_to_kill": 0.0,
-        }
         value_c = 0.0  # No one dies
 
         return {
@@ -675,7 +642,7 @@ class EthicsEngine:
 
         factor = impact_factors.get(operation, 0.0)
         region_fraction = min(
-            1.0, np.linalg.norm(region) / 100.0
+            1.0, float(np.linalg.norm(region) / 100.0)
         )  # Estimate region size
         estimated_delta = current_c * factor * region_fraction
 

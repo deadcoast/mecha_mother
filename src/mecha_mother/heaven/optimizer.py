@@ -103,7 +103,7 @@ class CScanner:
         lambda_min = np.min(eigenvalues)
 
         if lambda_max > 0:
-            return (lambda_max - lambda_min) / lambda_max
+            return float((lambda_max - lambda_min) / lambda_max)
         return 0.0
 
 
@@ -574,7 +574,7 @@ class HeavenOptimizer:
 
     def compute_heaven_metrics(
         self, consciousness_field: ConsciousnessField, beauty_value: float
-    ) -> Dict[str, float]:
+    ) -> Dict[str, Any]:
         """
         Compute comprehensive heaven metrics.
 
@@ -616,14 +616,14 @@ class HeavenOptimizer:
         transcendence = np.clip(transcendence, 0, 1)
 
         return {
-            "total_consciousness": total_c,
-            "average_consciousness": avg_c,
+            "total_consciousness": float(total_c),
+            "average_consciousness": float(avg_c),
             "n_beings": n_beings,
-            "beauty": beauty_value,
-            "heaven_score": heaven_score,
-            "heaven_index": heaven_index,
-            "coherence": coherence,
-            "transcendence_potential": transcendence,
+            "beauty": float(beauty_value),
+            "heaven_score": float(heaven_score),
+            "heaven_index": float(heaven_index),
+            "coherence": float(coherence),
+            "transcendence_potential": float(transcendence),
             "is_heaven": heaven_index > 0.8,
             "is_transcendent": transcendence > 0.9,
         }

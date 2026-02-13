@@ -584,7 +584,12 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "black" },
     { name = "h5py" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -603,7 +608,14 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "h5py", specifier = ">=3.15.1" }]
+dev = [
+    { name = "black", specifier = ">=23.0.0" },
+    { name = "h5py", specifier = ">=3.15.1" },
+    { name = "mypy", specifier = ">=1.0.0" },
+    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "ruff", specifier = ">=0.1.0" },
+]
 
 [[package]]
 name = "mypy"

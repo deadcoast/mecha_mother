@@ -34,5 +34,10 @@ disable_error_code = ["import-untyped"]
 
 [dependency-groups]
 dev = [
+    "black>=23.0.0",
     "h5py>=3.15.1",
+    "mypy>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
 ]
