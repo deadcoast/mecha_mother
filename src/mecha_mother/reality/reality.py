@@ -3,7 +3,7 @@ Reality API - primary interface for manipulating universes.
 """
 
 import numpy as np
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -846,7 +846,7 @@ class Reality:
         # Load configuration - reconstruct RealityConfig from dict
         config_data = import_data["config"]
         if isinstance(config_data, dict):
-            self.config = RealityConfig(**config_data)
+            self.config = self._coerce_reality_config(config_data)
         elif isinstance(config_data, RealityConfig):
             self.config = config_data
         else:
@@ -1147,19 +1147,113 @@ class Reality:
             bio = io.BytesIO(data)
             import_data = {}
             with h5py.File(bio, "r") as f:
+                quantum_ds = f.get("quantum_state")
                 import_data["state"] = {
-                    "quantum": f["quantum_state"][:] if "quantum_state" in f else None,
+                    "quantum": np.array(quantum_ds) if quantum_ds is not None else None,
                     "consciousness": None,
                     "beauty": None,
                     "ethics": None,
                 }
                 import_data["metadata"] = dict(f.attrs)
-                config_dict = dict(f["config"].attrs)
-                import_data["config"] = RealityConfig(**config_dict)
+                config_group: Any = f.get("config")
+                config_attrs = getattr(config_group, "attrs", None)
+                config_dict: Dict[str, Any] = (
+                    dict(config_attrs.items()) if config_attrs is not None else {}
+                )
+                import_data["config"] = self._coerce_reality_config(config_dict)
             import_data["version"] = self.version
             return import_data
         except ImportError:
             raise ImportError("h5py required for HDF5 import")
+
+    def _coerce_reality_config(self, config_dict: Mapping[str, Any]) -> RealityConfig:
+        """Coerce untyped config payloads (JSON/HDF5) into a typed RealityConfig."""
+
+        def _normalize_scalar(value: Any) -> Any:
+            if isinstance(value, np.ndarray):
+                if value.size == 0:
+                    return None
+                if value.size == 1:
+                    return value.item()
+                return value.tolist()
+            return value
+
+        def _as_int(value: Any, default: int) -> int:
+            value = _normalize_scalar(value)
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return default
+
+        def _as_float(value: Any, default: float) -> float:
+            value = _normalize_scalar(value)
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return default
+
+        def _as_bool(value: Any, default: bool) -> bool:
+            value = _normalize_scalar(value)
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, (int, float)):
+                return bool(value)
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", errors="ignore")
+            if isinstance(value, str):
+                lowered = value.strip().lower()
+                if lowered in {"1", "true", "yes", "on"}:
+                    return True
+                if lowered in {"0", "false", "no", "off"}:
+                    return False
+            return default
+
+        def _coerce_physical_laws(value: Any) -> List[PhysicalLaw]:
+            value = _normalize_scalar(value)
+            if value is None:
+                return [PhysicalLaw.QUANTUM_MECHANICS]
+
+            if isinstance(value, (list, tuple)):
+                raw_values = list(value)
+            else:
+                raw_values = [value]
+
+            parsed: List[PhysicalLaw] = []
+            for raw in raw_values:
+                raw = _normalize_scalar(raw)
+                if isinstance(raw, PhysicalLaw):
+                    parsed.append(raw)
+                    continue
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8", errors="ignore")
+                if isinstance(raw, str):
+                    try:
+                        parsed.append(PhysicalLaw(raw))
+                        continue
+                    except ValueError:
+                        try:
+                            parsed.append(PhysicalLaw[raw])
+                            continue
+                        except KeyError:
+                            pass
+
+            return parsed or [PhysicalLaw.QUANTUM_MECHANICS]
+
+        return RealityConfig(
+            dimensions=_as_int(config_dict.get("dimensions"), 3),
+            time_enabled=_as_bool(config_dict.get("time_enabled"), True),
+            consciousness_support=_as_bool(
+                config_dict.get("consciousness_support"), True
+            ),
+            physical_laws=_coerce_physical_laws(config_dict.get("physical_laws")),
+            initial_energy=_as_float(config_dict.get("initial_energy"), 1e9),
+            entropy_seed=_as_int(config_dict.get("entropy_seed"), 42),
+            ethical_constraints=_as_bool(config_dict.get("ethical_constraints"), True),
+            beauty_optimization=_as_bool(
+                config_dict.get("beauty_optimization"), False
+            ),
+            auto_consistency=_as_bool(config_dict.get("auto_consistency"), True),
+        )
 
     def _convert_for_json(self, data):
         """Convert data to JSON-serializable format recursively."""
