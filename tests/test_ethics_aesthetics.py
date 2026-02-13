@@ -138,6 +138,40 @@ def test_reality_with_ethics():
     assert isinstance(success, bool)
 
 
+def test_spacetime_ethics_without_consciousness_field():
+    """Ethics checks should not crash when consciousness support is disabled."""
+    reality = Reality(
+        RealityConfig(
+            consciousness_support=False,
+            ethical_constraints=True,
+            beauty_optimization=False,
+        )
+    )
+    reality.initialize()
+    ok = reality.manipulate_spacetime(
+        operation="warp",
+        region=np.array([0.2, 0.5, 0.8], dtype=float),
+        parameters={"intensity": 0.2},
+    )
+    assert isinstance(ok, bool)
+
+
+def test_constant_modification_risk_scales_with_deviation():
+    """Ethical constant check should be stricter for large deviations."""
+    engine = EthicsEngine()
+
+    class Field:
+        def total_consciousness(self) -> float:
+            return 100.0
+
+    field = Field()
+    near = engine.check_constant_modification("c", 2.9e8, field)
+    far = engine.check_constant_modification("c", 1.0e6, field)
+
+    assert near["estimated_c_change"] >= far["estimated_c_change"]
+    assert far["permissible"] is False
+
+
 def test_reality_with_beauty():
     """Test reality with beauty optimization."""
     config = RealityConfig(consciousness_support=True, beauty_optimization=True)

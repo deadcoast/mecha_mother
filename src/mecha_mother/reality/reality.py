@@ -539,9 +539,9 @@ class Reality:
         # Check ethical constraints
         if self.config.ethical_constraints:
             consciousness_impact = self.ethics_engine.assess_spacetime_impact(
-                operation, region, self.consciousness_field
+                operation, region, self.consciousness_field, self.reality_state_vector
             )
-            if consciousness_impact["net_c_change"] < -1.0:
+            if not consciousness_impact["permissible"]:
                 print(
                     f"Ethically prohibited: Would decrease consciousness by {consciousness_impact['net_c_change']}"
                 )

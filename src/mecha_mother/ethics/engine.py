@@ -599,35 +599,54 @@ class EthicsEngine:
 
         Uses consciousness gradient to determine if change increases total ℂ.
         """
-        current_c = consciousness_field.total_consciousness()
+        current_c = self._safe_total_consciousness(consciousness_field)
 
-        # Critical constants that could destroy consciousness
-        if constant_name == "c" and new_value < 1e6:
+        if not np.isfinite(new_value):
             return {
                 "permissible": False,
-                "reason": "Speed of light too low - would destroy most consciousness",
-                "estimated_c_change": -current_c * 0.99,
+                "reason": "Constant must be a finite numeric value",
+                "estimated_c_change": -max(1.0, 0.2 * current_c),
             }
 
-        if constant_name == "alpha" and (new_value < 0.001 or new_value > 0.1):
-            return {
-                "permissible": False,
-                "reason": "Fine structure constant outside viable range for chemistry",
-                "estimated_c_change": -current_c * 0.5,
-            }
+        reference = {
+            "c": 299792458.0,
+            "alpha": 1.0 / 137.035999084,
+            "G": 6.67430e-11,
+            "hbar": 1.054571817e-34,
+        }
+        viability = {
+            "c": (1e6, 1e10),
+            "alpha": (0.001, 0.1),
+            "G": (1e-15, 1e-5),
+            "hbar": (1e-40, 1e-20),
+        }
 
-        if constant_name == "G" and (new_value < 1e-15 or new_value > 1e-5):
-            return {
-                "permissible": False,
-                "reason": "Gravitational constant would prevent stable structures",
-                "estimated_c_change": -current_c * 0.8,
-            }
+        if constant_name in viability:
+            lo, hi = viability[constant_name]
+            if not (lo <= new_value <= hi):
+                return {
+                    "permissible": False,
+                    "reason": f"{constant_name} outside viability envelope [{lo:.3e}, {hi:.3e}]",
+                    "estimated_c_change": -max(1.0, 0.8 * current_c),
+                }
 
-        # Default: allow if no obvious issues
+        base = reference.get(constant_name, new_value)
+        sensitivity = {"c": 0.35, "alpha": 0.8, "G": 0.6, "hbar": 0.5}.get(
+            constant_name, 0.2
+        )
+        log_delta = float(abs(np.log((new_value + 1e-60) / (base + 1e-60))))
+        estimated_c_change = -current_c * min(1.0, sensitivity * log_delta)
+        permissible = estimated_c_change >= -max(1.0, 0.25 * current_c)
+
         return {
-            "permissible": True,
-            "reason": "No ethical violations detected",
-            "estimated_c_change": 0.0,
+            "permissible": permissible,
+            "reason": (
+                "No ethical violations detected"
+                if permissible
+                else "Estimated consciousness loss exceeds safe threshold"
+            ),
+            "estimated_c_change": float(estimated_c_change),
+            "relative_change": float(log_delta),
         }
 
     def check_merge(self, reality1: Any, reality2: Any, method: str) -> Dict[str, Any]:
@@ -643,8 +662,30 @@ class EthicsEngine:
         if hasattr(reality2, "consciousness_field") and reality2.consciousness_field:
             c2 = reality2.consciousness_field.total_consciousness()
 
-        # Estimate merged consciousness with synergy effects
-        synergy_factor = 1.1 if method == "consciousness_alignment" else 1.0
+        fidelity = 0.5
+        s1 = getattr(reality1, "reality_state_vector", None)
+        s2 = getattr(reality2, "reality_state_vector", None)
+        if isinstance(s1, np.ndarray) and isinstance(s2, np.ndarray):
+            a = np.asarray(s1, dtype=complex)
+            b = np.asarray(s2, dtype=complex)
+            n = max(len(a), len(b))
+            ap = np.zeros(n, dtype=complex)
+            bp = np.zeros(n, dtype=complex)
+            ap[: len(a)] = a
+            bp[: len(b)] = b
+            na = np.linalg.norm(ap)
+            nb = np.linalg.norm(bp)
+            if na > 0 and nb > 0:
+                fidelity = float(np.abs(np.vdot(ap / na, bp / nb)))
+
+        base_synergy = {
+            "consciousness_alignment": 1.05,
+            "quantum_entanglement": 1.02,
+            "full_unification": 1.00,
+        }.get(method, 1.0)
+        synergy_factor = base_synergy + 0.15 * fidelity
+        if method == "full_unification" and fidelity < 0.2:
+            synergy_factor *= 0.75
         estimated_merged_c = (c1 + c2) * synergy_factor
 
         # Check if merge preserves or increases consciousness
@@ -654,6 +695,8 @@ class EthicsEngine:
                 "reason": "Merge would decrease total consciousness",
                 "c_before": c1 + c2,
                 "c_after_estimate": estimated_merged_c,
+                "state_fidelity": fidelity,
+                "synergy_factor": synergy_factor,
             }
 
         return {
@@ -661,15 +704,21 @@ class EthicsEngine:
             "reason": "Merge increases total consciousness",
             "c_before": c1 + c2,
             "c_after_estimate": estimated_merged_c,
+            "state_fidelity": fidelity,
+            "synergy_factor": synergy_factor,
         }
 
     def assess_spacetime_impact(
-        self, operation: str, region: np.ndarray, consciousness_field: Any
+        self,
+        operation: str,
+        region: np.ndarray,
+        consciousness_field: Any,
+        reality_state: Optional[np.ndarray] = None,
     ) -> Dict[str, Any]:
         """
         Assess impact of spacetime manipulation on consciousness.
         """
-        current_c = consciousness_field.total_consciousness()
+        current_c = self._safe_total_consciousness(consciousness_field)
 
         # Impact based on operation type
         impact_factors = {
@@ -677,22 +726,69 @@ class EthicsEngine:
             "destroy": -1.0,  # Total destruction in region
             "warp": -0.05,  # Minor disruption
             "fold": -0.02,  # Very minor
-            "create": 0.1,  # Potential for new consciousness
-            "expand": 0.05,  # More space for beings
+            "stitch": 0.04,
+            "inflate": 0.07,  # More space for beings
+            "compress": -0.08,
+            "create": 0.1,
+            "expand": 0.05,
         }
 
         factor = impact_factors.get(operation, 0.0)
-        region_fraction = min(
-            1.0, float(np.linalg.norm(region) / 100.0)
-        )  # Estimate region size
-        estimated_delta = current_c * factor * region_fraction
+        region_arr = np.asarray(region, dtype=float).reshape(-1)
+        if region_arr.size == 0:
+            region_fraction = 0.0
+        else:
+            region_fraction = float(np.clip(np.mean(np.abs(region_arr)), 0.0, 1.0))
+
+        region_energy_fraction = 1.0
+        regional_gradient = 0.0
+        if isinstance(reality_state, np.ndarray) and reality_state.size > 0:
+            state = np.asarray(reality_state, dtype=complex)
+            indices = self._region_indices(region_arr, len(state))
+            if indices.size > 0:
+                energy = np.abs(state) ** 2
+                total_energy = float(np.sum(energy) + 1e-10)
+                region_energy_fraction = float(np.sum(energy[indices]) / total_energy)
+                local = state[indices]
+                grad_like = np.abs(local - np.roll(local, 1))
+                regional_gradient = float(np.clip(np.mean(grad_like), 0.0, 1.0))
+
+        effect_scale = (0.3 + 0.7 * region_energy_fraction) * (
+            1.0 + 0.5 * regional_gradient
+        )
+        estimated_delta = current_c * factor * max(0.0, region_fraction) * effect_scale
+        permissible_floor = -max(1.0, 0.15 * current_c)
 
         return {
-            "net_c_change": estimated_delta,
-            "permissible": estimated_delta > -1.0,  # Allow small decreases
+            "net_c_change": float(estimated_delta),
+            "permissible": float(estimated_delta) >= permissible_floor,
             "operation": operation,
-            "severity": abs(factor),
+            "severity": float(abs(factor)),
+            "region_fraction": region_fraction,
+            "region_energy_fraction": region_energy_fraction,
+            "regional_gradient": regional_gradient,
         }
+
+    def _safe_total_consciousness(self, consciousness_field: Any) -> float:
+        """Safely extract total consciousness from an optional field object."""
+        if consciousness_field is None:
+            return 0.0
+        total_fn = getattr(consciousness_field, "total_consciousness", None)
+        if callable(total_fn):
+            total = float(total_fn())
+            if np.isfinite(total):
+                return max(0.0, total)
+        return 0.0
+
+    def _region_indices(self, region: np.ndarray, n_state: int) -> np.ndarray:
+        """Map a continuous region descriptor to state-vector indices."""
+        if n_state <= 0:
+            return np.array([], dtype=int)
+        if region.size == 0:
+            return np.array([0], dtype=int)
+        clipped = np.clip(region, 0.0, 1.0)
+        idx = np.unique(np.floor(clipped * max(0, n_state - 1)).astype(int))
+        return idx[(idx >= 0) & (idx < n_state)]
 
     def compute_moral_value(
         self, action: Dict[str, Any], beings: List[Any], time_horizon: int = 100

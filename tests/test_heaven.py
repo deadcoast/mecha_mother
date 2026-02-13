@@ -2,7 +2,10 @@
 Tests for Heaven Builder SDK.
 """
 
+import numpy as np
+
 from mecha_mother.heaven import HeavenBuilder, HeavenOptimizer
+from mecha_mother.heaven.optimizer import CScanner
 
 
 def test_heaven_optimizer():
@@ -31,6 +34,15 @@ def test_heaven_optimizer_city():
     assert "b_increase" in result
     assert "heaven_score" in result
     assert result["population"] == 100000
+
+
+def test_cscanner_integrated_information_nontrivial_state():
+    """Integrated information should be finite and positive for nontrivial states."""
+    scanner = CScanner()
+    state = (np.array([1.0, 0.5, 0.25, 0.1], dtype=float) + 0j).astype(complex)
+    phi = scanner.compute_integrated_information(state)
+    assert 0.0 <= phi <= 1.0
+    assert phi > 0.0
 
 
 def test_heaven_builder_city():

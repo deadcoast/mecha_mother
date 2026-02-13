@@ -88,23 +88,34 @@ class CScanner:
         if len(state) < 2:
             return 0.0
 
-        # Build simple consciousness matrix for state
-        len(state)
-        C = np.outer(state, state.conj())
+        psi = np.asarray(state, dtype=complex).reshape(-1)
+        psi = psi / (np.linalg.norm(psi) + 1e-10)
+
+        # Construct a coupled consciousness operator with local temporal/neighbor links.
+        # This avoids the trivial rank-1 outer-product collapse for pure states.
+        density = np.outer(psi, psi.conj())
+        forward = np.outer(np.roll(psi, 1), psi.conj())
+        backward = forward.conj().T
+        diag = np.diag(np.abs(psi) ** 2)
+        C = density + 0.25 * (forward + backward) + 0.15 * diag
         C = (C + C.conj().T) / 2  # Hermitian
 
-        eigenvalues = np.linalg.eigvalsh(C)
+        eigenvalues = np.real(np.linalg.eigvalsh(C))
         eigenvalues = eigenvalues[eigenvalues > 1e-10]
 
-        if len(eigenvalues) < 2:
+        if len(eigenvalues) >= 2:
+            lambda_max = float(np.max(eigenvalues))
+            lambda_min = float(np.min(eigenvalues))
+            if lambda_max > 0:
+                return float(np.clip((lambda_max - lambda_min) / lambda_max, 0.0, 1.0))
+
+        # Entropic fallback for near-degenerate spectra.
+        probs = np.abs(psi) ** 2
+        entropy = -float(np.sum(probs * np.log(probs + 1e-12)))
+        max_entropy = float(np.log(len(probs) + 1e-12))
+        if max_entropy <= 0:
             return 0.0
-
-        lambda_max = np.max(eigenvalues)
-        lambda_min = np.min(eigenvalues)
-
-        if lambda_max > 0:
-            return float((lambda_max - lambda_min) / lambda_max)
-        return 0.0
+        return float(np.clip(entropy / max_entropy, 0.0, 1.0))
 
 
 class HeavenOptimizer:
