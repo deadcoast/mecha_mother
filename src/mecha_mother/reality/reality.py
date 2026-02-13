@@ -76,6 +76,7 @@ class Reality:
         self.state = RealityState.UNINITIALIZED
         self.id = self._generate_reality_id()
         self.emergent_dimensions: Optional[Dict[str, float]] = None
+        self.runtime_dimensions: Optional[int] = None
 
         # Core subsystems
         self.quantum_engine = QuantumRealityEngine()
@@ -121,8 +122,11 @@ class Reality:
             # Step 1: Create fundamental quantum field
             print("  Creating quantum vacuum...")
             self.emergent_dimensions = self._derive_spacetime_dimensions()
+            self.runtime_dimensions = self._resolve_runtime_dimensions(
+                self.emergent_dimensions
+            )
             self.reality_state_vector = self.quantum_engine.create_vacuum_state(
-                dimensions=self.config.dimensions,
+                dimensions=self._active_dimensions(),
                 energy=self.config.initial_energy,
                 seed=self.config.entropy_seed,
             )
@@ -183,7 +187,10 @@ class Reality:
             )
 
             print(f"[OK] Reality {self.id} successfully initialized!")
-            print(f"  Dimensions: {self.config.dimensions}")
+            print(
+                f"  Dimensions (configured/runtime): "
+                f"{self.config.dimensions}/{self._active_dimensions()}"
+            )
             if self.emergent_dimensions is not None:
                 print(
                     "  Emergent dimensions estimate: "
@@ -231,7 +238,7 @@ class Reality:
         particle_id = f"particle_{len(self.quantum_engine.particles)}"
 
         if momentum is None:
-            momentum = np.zeros(self.config.dimensions)
+            momentum = np.zeros(self._active_dimensions())
 
         if self.reality_state_vector is None:
             raise RuntimeError("Reality state not initialized")
@@ -1021,6 +1028,17 @@ class Reality:
             epsilon = 0.0
         return {"base": d_base, "epsilon": epsilon, "continuous": d_continuous}
 
+    def _resolve_runtime_dimensions(self, derived: Dict[str, float]) -> int:
+        """Convert a continuous emergent estimate to concrete simulation dimensions."""
+        if not derived:
+            return self.config.dimensions
+        continuous = float(derived.get("continuous", float(self.config.dimensions)))
+        return max(1, int(np.round(continuous)))
+
+    def _active_dimensions(self) -> int:
+        """Return active runtime dimensions, falling back to config before init."""
+        return self.runtime_dimensions or self.config.dimensions
+
     def _generate_id(self) -> str:
         """Generate unique ID for objects."""
         import uuid
@@ -1083,7 +1101,7 @@ class Reality:
         for part in body_parts:
             self.create_particle(
                 particle_type="organic",
-                position=np.random.randn(self.config.dimensions),
+                position=np.random.randn(self._active_dimensions()),
                 properties={"being_id": being_id, "organ": part},
             )
 
@@ -1092,7 +1110,7 @@ class Reality:
         for i in range(1000):  # 1000 qubits
             self.create_particle(
                 particle_type="qubit",
-                position=np.random.randn(self.config.dimensions),
+                position=np.random.randn(self._active_dimensions()),
                 properties={"being_id": being_id, "qubit_index": i},
             )
 
@@ -1229,10 +1247,11 @@ class Reality:
                     "ethics": None,
                 }
                 import_data["metadata"] = dict(f.attrs)
-                config_group: Any = f.get("config")
-                config_attrs = getattr(config_group, "attrs", None)
+                config_obj = f.get("config")
                 config_dict: Dict[str, Any] = (
-                    dict(config_attrs.items()) if config_attrs is not None else {}
+                    dict(config_obj.attrs.items())
+                    if isinstance(config_obj, h5py.Group)
+                    else {}
                 )
                 import_data["config"] = self._coerce_reality_config(config_dict)
             import_data["version"] = self.version

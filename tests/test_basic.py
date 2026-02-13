@@ -251,6 +251,8 @@ def test_universe_from_scratch_time_and_c_derivation():
     assert uni.get_time_depth() == result["levels"]
     c_cons = uni.derive_speed_of_light_from_consistency()
     assert c_cons > 1e8
+    assert uni.consistency_count(5) == 10
+    assert uni.total_constraints(5) == 15
 
 
 def test_reality_emergent_dimension_estimate():
@@ -260,6 +262,10 @@ def test_reality_emergent_dimension_estimate():
     assert reality.emergent_dimensions is not None
     assert "base" in reality.emergent_dimensions
     assert "epsilon" in reality.emergent_dimensions
+    assert "continuous" in reality.emergent_dimensions
+    assert reality.runtime_dimensions is not None
+    expected_runtime_dims = int(round(reality.emergent_dimensions["continuous"]))
+    assert reality.runtime_dimensions == max(1, expected_runtime_dims)
 
 
 def test_particle_constraint_cycle():

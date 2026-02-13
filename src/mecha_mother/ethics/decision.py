@@ -41,14 +41,17 @@ class EthicalDecisionEngine:
         best_option = None
         best_value = -np.inf
         moral_values = []
+        moral_magnitudes = []
 
         for option in options:
             # Compute moral value
             value = self.ethics_engine.compute_moral_value(
                 action=option, beings=beings, time_horizon=time_horizon
             )
+            magnitude = self.compute_good_evil_magnitude(option, beings)
 
             moral_values.append(value)
+            moral_magnitudes.append(magnitude)
 
             if value > best_value:
                 best_value = value
@@ -75,10 +78,49 @@ class EthicalDecisionEngine:
         return {
             "best_option": best_option,
             "moral_value": best_value,
+            "best_magnitude": (
+                self.compute_good_evil_magnitude(best_option, beings)
+                if best_option is not None
+                else 0.0
+            ),
             "all_values": moral_values,
+            "all_magnitudes": moral_magnitudes,
             "certainty": certainty,
             "gradient": gradient,
         }
+
+    def compute_good_evil_magnitude(
+        self,
+        action: Dict[str, Any],
+        beings: List[Any],
+        baseline_total_consciousness: float | None = None,
+    ) -> float:
+        """
+        Compute the action magnitude:
+
+        G(A) = (ΔC_total / C_total(Ψ)) * log(1 + N_affected)
+
+        Returns absolute magnitude so strong good and strong evil both score high impact.
+        """
+        delta_c_total = self.ethics_engine.compute_moral_value(action, beings)
+        if baseline_total_consciousness is None:
+            baseline_total_consciousness = float(
+                sum(float(getattr(b, "consciousness", 1.0)) for b in beings)
+            )
+
+        num_affected_raw = action.get("num_affected")
+        if isinstance(num_affected_raw, int):
+            num_affected = max(0, num_affected_raw)
+        else:
+            affected = action.get("affected_beings")
+            if isinstance(affected, list):
+                num_affected = len(affected)
+            else:
+                num_affected = len(beings)
+
+        ratio = delta_c_total / (baseline_total_consciousness + 1e-10)
+        magnitude = ratio * np.log1p(float(num_affected))
+        return float(abs(magnitude))
 
     def is_good_action(self, action: Dict[str, Any], beings: List[Any]) -> bool:
         """

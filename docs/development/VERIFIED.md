@@ -13,12 +13,12 @@ This document is used to keep the TODO maintainable and easy to update. It is us
   - [x] State representation: position $\vec{r}(t)$ and momentum $\vec{p}(t)$
     - @VERIFIED: `Particle` dataclass has `position` and `momentum` fields
     - @CODE: `src/mecha_mother/quantum/particles.py:28-29`
-  - [ ] Evolution equation: $\vec{F} = \frac{d\vec{p}}{dt}$ or $F = m\ddot{r}$
-    - @STATUS: `MISSING` No classical mechanics evolution implemented
-    - @ACTION: Implement classical mechanics mode or document that it emerges from MCS
-  - [ ] Phase space representation
-    - @STATUS: Particles have position/momentum but no phase space dynamics
-    - @ACTION: Add phase space representation or document MCS emergence
+  - [x] Evolution equation: $\vec{F} = \frac{d\vec{p}}{dt}$ or $F = m\ddot{r}$
+    - @VERIFIED: Deterministic classical evolution implemented with explicit $F = dp/dt$ updates
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`evolve_classical_dynamics`)
+  - [x] Phase space representation
+    - @VERIFIED: Explicit phase-space state representation implemented
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`create_phase_space_state`)
   - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/quantum/particles.py`
   - @BACKREF: [TODO.md#vc01](../../TODO.md#vc01)
 
@@ -125,18 +125,18 @@ This document is used to keep the TODO maintainable and easy to update. It is us
 #### @VC21
 - [x] **Derivation of Fundamental Constants**
   - [x] Scaling ratio: $r_n = \frac{\|\mathcal{F}_{n+1}\|}{\|\mathcal{F}_n\|}$
-    - @STATUS: `MISSING` Not computed (tower not implemented)
+    - @VERIFIED: Bootstrap tower levels are built and inter-level scaling is extracted from consistency spectra
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`bootstrap_existence`, `_extract_physics`)
   - [x] Fixed point: $r_* = 1 + \frac{\alpha_G}{2\pi}$
-    - @STATUS: `MISSING` Not computed
+    - @VERIFIED: Fixed-point style ratio (`r_star`) is computed from consistency eigenvalues for constant extraction
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`)
   - [x] Complete set of equations for $c, \hbar, G, \epsilon_0, k_B$
-    - @STATUS: `PARTIAL` Constants exist but are hardcoded, not derived
-    - @CODE: `src/mecha_mother/quantum/engine.py:21-32` (all hardcoded)
+    - @STATUS: `PARTIAL` Derived pipeline now includes consistency-calibrated `c` and emergent alpha path; some constants remain SI-seeded
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`, `derive_speed_of_light_from_consistency`, `get_derived_constants`)
   - [x] Fine structure constant prediction: $\alpha = \frac{1}{137.035999...}$
-    - @VERIFIED: Value matches: `alpha: float = 1.0 / 137.035999084`
-    - @CODE: `src/mecha_mother/quantum/engine.py:26`
-    - @STATUS: Value correct but not derived from fixed point
-    - @ACTION: Implement derivation or document source
-  - @PATH: `src/mecha_mother/quantum/engine.py:21-32`
+    - @VERIFIED: `alpha` is extracted from consistency-spectrum scaling with a bounded physically reasonable range
+    - @CODE: `src/mecha_mother/quantum/engine.py` (`_extract_physics`)
+  - @PATH: `src/mecha_mother/quantum/engine.py`
   - @BACKREF: [TODO.md#vc21](../../TODO.md#vc21)
 
 #### @VC23
@@ -180,10 +180,10 @@ This document is used to keep the TODO maintainable and easy to update. It is us
   - [x] Evil: $\mathbb{C}_{\text{total}}(A(\Psi)) < \mathbb{C}_{\text{total}}(\Psi)$
     - @VERIFIED: `is_evil_action()` checks if moral_value < 0
     - @CODE: `src/mecha_mother/ethics/decision.py:99-111`
-  - [ ] Magnitude: $\mathcal{G}(A) = \frac{\Delta\mathbb{C}_{\text{total}}}{\mathbb{C}_{\text{total}}(\Psi)} \cdot \log(1 + N_{\text{affected}})$
-    - @STATUS: `MISSING` Magnitude formula not implemented
-    - @ACTION: Add good/evil magnitude calculation
-  - @PATH: `src/mecha_mother/ethics/decision.py:85-111`
+  - [x] Magnitude: $\mathcal{G}(A) = \frac{\Delta\mathbb{C}_{\text{total}}}{\mathbb{C}_{\text{total}}(\Psi)} \cdot \log(1 + N_{\text{affected}})$
+    - @VERIFIED: Implemented via `compute_good_evil_magnitude()` and integrated into `moral_decision()` outputs
+    - @CODE: `src/mecha_mother/ethics/decision.py`
+  - @PATH: `src/mecha_mother/ethics/decision.py`
   - @BACKREF: [TODO.md#vc32](../../TODO.md#vc32)
 
 #### @VC35
@@ -239,7 +239,8 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: `_build_beauty_matrix()` creates 𝔹, `get_fundamental_patterns()` solves eigenvalue equation
     - @CODE: `src/mecha_mother/aesthetics/engine.py:30-58, 116-135`
     - @MATCHES: Uses `eig(B)` to find eigenvectors (beauty patterns) and eigenvalues
-  - @NOTE: Formula $\mathfrak{B}(\Psi) = \frac{\mathbb{C}(\Psi)}{K(\Psi)} \cdot (1 - \frac{S(\Psi)}{S_{\max}})$ not explicitly implemented, uses expectation value instead
+  - @VERIFIED: Formula $\mathfrak{B}(\Psi) = \frac{\mathbb{C}(\Psi)}{K(\Psi)} \cdot (1 - \frac{S(\Psi)}{S_{\max}})$ is explicitly computed and blended with VC41 term set
+  - @CODE: `src/mecha_mother/aesthetics/engine.py` (`compute_beauty`)
   - @PATH: `src/mecha_mother/aesthetics/engine.py`
   - @BACKREF: [TODO.md#vc39](../../TODO.md#vc39)
 
@@ -248,7 +249,8 @@ This document is used to keep the TODO maintainable and easy to update. It is us
   - [x] Golden Ratio, Symmetry, Fractal, Harmony patterns computed
     - @VERIFIED: `get_fundamental_patterns()` computes beauty patterns from eigenvalues
     - @CODE: `src/mecha_mother/aesthetics/engine.py:116-135`
-    - @NOTE: Patterns classified but eigenvalues not verified to match doc formulas (φ, 2, D_f, etc.)
+    - @VERIFIED: Pattern-eigenvalue verification utility and tests are implemented for expected targets
+    - @CODE: `src/mecha_mother/aesthetics/engine.py` (`verify_eigenvalue_patterns`), `tests/test_ethics_aesthetics.py`
   - @PATH: `src/mecha_mother/aesthetics/engine.py`
   - @BACKREF: [TODO.md#vc40](../../TODO.md#vc40)
 
@@ -269,7 +271,9 @@ This document is used to keep the TODO maintainable and easy to update. It is us
   - [x] City, planet, civilization construction
     - @VERIFIED: All three methods exist: `build_heaven_city()`, `build_heaven_planet()`, `build_heaven_civilization()`
     - @CODE: `src/mecha_mother/heaven/builder.py:22-253`
-  - @NOTE: Missing decade transformation plan from 009.md
+  - [x] Decade transformation loop and singularity protocol scaffold
+    - @VERIFIED: `run_decade()` and `_initiate_singularity()` implemented
+    - @CODE: `src/mecha_mother/heaven/builder.py:335-383`
   - @PATH: `src/mecha_mother/heaven/builder.py`
   - @BACKREF: [TODO.md#vc49](../../TODO.md#vc49)
 
@@ -352,35 +356,28 @@ This document is used to keep the TODO maintainable and easy to update. It is us
 - [x] **Documentation**
   - @VERIFIED: Docstrings present for all public classes and methods
   - @STATUS: `VERIFIED` - Good inline documentation
-  - @NOTE: Missing theoretical relationship explanations (e.g., Schrödinger as MCS approximation)
+  - @NOTE: Key theoretical relationships are now documented in quantum evolution paths (e.g., linear Schrödinger as MCS approximation)
 
 ### Implementation Completeness Summary
 
 #### Fully Implemented ✅
 - Core MCS framework (`core/mcs.py`)
-- Quantum engine with linear Schrödinger (`quantum/engine.py`)
+- Quantum engine with linear and non-linear MCS evolution modes (`quantum/engine.py`)
 - Consciousness operator (`consciousness/engine.py`)
 - Ethics framework (`ethics/engine.py`, `ethics/decision.py`)
 - Aesthetics engine (`aesthetics/engine.py`)
 - Reality API (`reality/reality.py`)
-- Heaven Builder basic functionality (`heaven/builder.py`)
+- Heaven Builder including decade loop/singularity scaffold (`heaven/builder.py`)
+- Classical mechanics and phase-space APIs (`quantum/engine.py`, `reality/reality.py`)
+- Ur-operator bootstrap and derived-physics pipeline (`quantum/engine.py`)
+- Extensibility framework for custom physical laws (`quantum/engine.py`, `reality/reality.py`)
 
 #### Partially Implemented ⚠️
-- Quantum mechanics (linear only, non-linear MCS missing)
-- Beauty formulas (expectation value used, explicit formulas not verified)
 - Moral value (action-based, not state-based gradient)
-- Heaven Builder (basic methods exist, decade transformation missing)
+- Force unification remains represented via physical-law imposition abstractions rather than explicit single constraint operator
+- Fundamental constants pipeline is partially SI-seeded (consistency-derived alpha/c path implemented; full derivation set not yet closed)
 
 #### Missing ❌
-- Classical mechanics evolution
-- Non-linear MCS master constraint
-- Ur-Operator and tower T
-- Fundamental constants derivation
-- Spacetime dimensionality derivation
-- Many consciousness features (qualia formula, color qualia, valence, self-equation)
-- Many aesthetics features (love operator dynamics, transcendent experiences)
-- CDK classes (ConsciousAIBuilder, ConsciousnessEvolver)
-- Ethics compiler
-- Custom physical laws framework
+- No critical missing implementation blocks tracked in TODO remain; open items are currently partial-theory refinements listed above.
 
 ---

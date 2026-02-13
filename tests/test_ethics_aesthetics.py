@@ -34,7 +34,10 @@ def test_ethical_decision_engine():
 
     assert "best_option" in result
     assert "moral_value" in result
+    assert "best_magnitude" in result
+    assert "all_magnitudes" in result
     assert result["best_option"] is not None
+    assert result["best_magnitude"] >= 0
 
 
 def test_beauty_operator():
@@ -47,6 +50,21 @@ def test_beauty_operator():
 
     assert 0 <= beauty <= 10
     assert isinstance(beauty, float)
+    vec = test_array / (np.linalg.norm(test_array) + 1e-10)
+    complexity = op._compute_complexity(vec)
+    compression = 1.0 / (1.0 + complexity)
+    symmetry = op._compute_symmetry(vec)
+    novelty = op._compute_novelty(vec)
+    meaning = op._compute_meaning(vec)
+    vc41 = 0.35 * compression + 0.25 * symmetry + 0.20 * novelty + 0.20 * meaning
+    vc39 = (compression / (complexity + 1e-10)) * (1.0 - novelty)
+    eigvals = np.linalg.eigvals(op.B)
+    expected = np.clip(
+        (0.5 * vc39 + 0.5 * vc41) * 10.0 / (np.max(np.abs(eigvals)) + 1e-10),
+        0.0,
+        10.0,
+    )
+    assert np.isclose(beauty, float(expected), atol=1e-6, rtol=1e-6)
 
     # Test text beauty
     text_beauty = op.compute_beauty("Golden light through fractal leaves")
@@ -136,3 +154,25 @@ def test_ethics_compiler_transform():
     transformed_types = [c["type"] for c in compiled]
     assert "assist" in transformed_types
     assert "decommission_safely" in transformed_types
+
+
+def test_good_evil_magnitude_formula():
+    """Test good/evil magnitude calculation API."""
+    engine = EthicalDecisionEngine()
+
+    beings = [
+        type("B", (), {"consciousness": 5.0})(),
+        type("B", (), {"consciousness": 3.0})(),
+    ]
+    help_action = {"type": "help", "num_affected": 2}
+    harm_action = {"type": "harm", "num_affected": 2}
+
+    help_mag = engine.compute_good_evil_magnitude(help_action, beings)
+    harm_mag = engine.compute_good_evil_magnitude(harm_action, beings)
+    zero_base_mag = engine.compute_good_evil_magnitude(
+        help_action, beings, baseline_total_consciousness=0.0
+    )
+
+    assert help_mag >= 0.0
+    assert harm_mag >= 0.0
+    assert zero_base_mag >= 0.0

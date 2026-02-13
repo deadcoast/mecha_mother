@@ -90,8 +90,9 @@ class BeautyOperator:
 
         vec = vec / (np.linalg.norm(vec) + 1e-10)
 
-        # Beauty via weighted universal formula plus operator expectation prior:
-        # 𝔹(X) = α Compression + β Symmetry + γ Novelty + δ Meaning
+        # Beauty via explicit VC39 and VC41 formula terms:
+        # VC39: 𝔅(Ψ) = C(Ψ)/K(Ψ) * (1 - S(Ψ)/S_max)
+        # VC41: 𝔅(X) = α Compression + β Symmetry + γ Novelty + δ Meaning
         alpha = 0.35
         beta = 0.25
         gamma = 0.20
@@ -103,11 +104,12 @@ class BeautyOperator:
         novelty = self._compute_novelty(vec)
         meaning = self._compute_meaning(vec)
 
-        formula_beauty = (
+        vc41_beauty = (
             alpha * compression + beta * symmetry + gamma * novelty + delta * meaning
         )
-        operator_beauty = np.abs(vec.conj().T @ self.B @ vec)
-        beauty_adjusted = 0.6 * operator_beauty + 0.4 * formula_beauty
+        s_max = 1.0
+        vc39_beauty = (compression / (complexity + 1e-10)) * (1.0 - novelty / s_max)
+        beauty_adjusted = 0.5 * vc39_beauty + 0.5 * vc41_beauty
 
         # Scale to 0-10
         eigenvalues, _ = eig(self.B)  # type: ignore[misc]

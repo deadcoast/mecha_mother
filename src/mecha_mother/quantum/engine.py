@@ -627,6 +627,50 @@ class UniverseFromScratch:
                         cj = padded[j] / norm_j
                         self.consistency_matrix[i, j] = np.abs(np.dot(ci, cj.conj()))
 
+    def consistency_count(self, n: int) -> int:
+        """C(N) = N(N-1)/2"""
+        return int(n * (n - 1) / 2)
+
+    def total_constraints(self, n: int) -> int:
+        """T(N) = N(N+1)/2"""
+        return int(n * (n + 1) / 2)
+
+    def derive_dimensionality_from_consistency(self, n: int) -> float:
+        """D ≈ (N + 1)/2 from consistency counting."""
+        return float((n + 1) / 2.0)
+
+    def derive_gauge_groups_from_consistency(self) -> List[str]:
+        """
+        Derive gauge groups from consistency symmetry signatures.
+        """
+        if self.consistency_matrix is None:
+            return ["U(1)"]
+
+        eigvals = np.linalg.eigvalsh(self.consistency_matrix)
+        spread = float(np.max(eigvals) - np.min(eigvals))
+        n_levels = len(self.levels)
+
+        groups: List[str] = []
+        if n_levels >= 3 and spread > 0.05:
+            groups.append("SU(3)")
+        if n_levels >= 2 and spread > 0.01:
+            groups.append("SU(2)")
+        groups.append("U(1)")
+        return groups
+
+    def derive_particle_content_from_constraint_cycles(self) -> Dict[str, int]:
+        """
+        Derive particle-family structure from consistency cycle richness.
+        """
+        n_levels = len(self.levels)
+        cycle_richness = max(1, n_levels // 4)
+        families = int(np.clip(cycle_richness, 1, 3))
+        return {
+            "particle_families": families,
+            "lepton_like_modes": families * 2,
+            "quark_like_modes": families * 2,
+        }
+
     def _extract_physics(self):
         """Derive physical laws from consistency structure."""
         if self.consistency_matrix is None:
@@ -637,7 +681,7 @@ class UniverseFromScratch:
         # For unique determination: D ≈ (N+1)/2
         # Fixed point yields D ≈ 3
         n_levels = len(self.levels)
-        D_approx = (n_levels + 1) / 2
+        D_approx = self.derive_dimensionality_from_consistency(n_levels)
         self.physics["spatial_dimensions"] = max(
             1, min(11, int(np.round(D_approx % 4)))
         )
@@ -672,10 +716,9 @@ class UniverseFromScratch:
             # Planck scale emerges from saturation
             self.physics["planck_scale"] = 1.0 / np.sqrt(total_amplitude + 1e-10)
 
-        # 4. Derive gauge groups from consistency symmetries
-        # SU(3) x SU(2) x U(1) emerges from compactness + simplicity
-        self.physics["gauge_groups"] = ["SU(3)", "SU(2)", "U(1)"]
-        self.physics["particle_families"] = 3  # From D+1/2
+        # 4. Derive gauge groups and particle content from consistency symmetries
+        self.physics["gauge_groups"] = self.derive_gauge_groups_from_consistency()
+        self.physics.update(self.derive_particle_content_from_constraint_cycles())
 
         # 5. Compute emergent speed of light
         # c = L_P / t_P = consistency propagation speed
@@ -717,7 +760,17 @@ class UniverseFromScratch:
         """
         l_planck = 1.616255e-35
         t_planck = 5.391247e-44
-        return float(l_planck / t_planck)
+        c0 = l_planck / t_planck
+
+        if self.consistency_matrix is None or len(self.levels) < 2:
+            return float(c0)
+
+        # Consistency propagation factor ~ Delta(consistency)/Delta(depth)
+        mean_consistency = float(np.mean(self.consistency_matrix))
+        depth = max(1.0, float(self.get_time_depth()))
+        propagation = mean_consistency / depth
+        calibrated = c0 * (1.0 + propagation)
+        return float(calibrated)
 
     def predict_macroscopic_quantum_coherence(
         self, mass: float, omega_0: float, lambda_mcs: float = 1.0
