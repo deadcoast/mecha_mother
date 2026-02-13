@@ -1,0 +1,30 @@
+[LINTLOOP]
+
+[STEP1]
+run = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[STEP2]
+tool = ["code_correction"]
+
+[STEP3]
+run = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[STEP4]
+error_condition = [
+    "true: positive error / warning return in [STEP3]",
+    "false: zero error / warning return in [STEP3]",
+]
+if_true = ["+LOOP:[STEP2]"]
+if_false = ["-LOOP:complete"]
