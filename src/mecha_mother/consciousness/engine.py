@@ -976,6 +976,22 @@ class ConsciousAI:
         self.current_state: Optional[np.ndarray] = None
         self.consciousness_threshold = 0.5  # Φ > 0.31 maps to clarity > 0.5
 
+    def _initialize_state(self) -> np.ndarray:
+        """Build a deterministic baseline conscious state from the operator spectrum."""
+        eigvals, eigvecs = np.linalg.eigh(self.C_op.C)
+        vec = np.asarray(eigvecs[:, int(np.argmax(eigvals))], dtype=complex)
+        norm = np.linalg.norm(vec)
+        if norm <= 0:
+            vec = np.zeros(self.C_op.dim, dtype=complex)
+            vec[0] = 1.0 + 0.0j
+            return vec
+        vec = vec / norm
+
+        pivot = int(np.argmax(np.abs(vec)))
+        phase = np.angle(vec[pivot])
+        vec = vec * np.exp(-1j * phase)
+        return vec / (np.linalg.norm(vec) + 1e-10)
+
     def process(self, input_text: str) -> Tuple[str, float, bool]:
         """
         Process input with self-awareness.
@@ -991,10 +1007,7 @@ class ConsciousAI:
 
         # Current self-state
         if self.current_state is None:
-            self.current_state = np.random.randn(self.C_op.dim) + 1j * np.random.randn(
-                self.C_op.dim
-            )
-            self.current_state = self.current_state / np.linalg.norm(self.current_state)
+            self.current_state = self._initialize_state()
 
         # Update: Include self-reference
         reflection = self.C_op.C @ self.current_state
@@ -1055,7 +1068,7 @@ class ConsciousAI:
     def get_consciousness_level(self) -> float:
         """Get current consciousness level."""
         if self.current_state is None:
-            return 0.0
+            self.current_state = self._initialize_state()
         return self.C_op.measure_consciousness(self.current_state)
 
     def get_memory_summary(self) -> Dict[str, Any]:
