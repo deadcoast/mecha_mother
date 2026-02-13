@@ -636,9 +636,9 @@ class AestheticsEngine:
         vec_a = self._traits_to_vector(person_a_traits)
         vec_b = self._traits_to_vector(person_b_traits)
 
-        # Individual consciousness (simplified)
-        C_A = float(np.linalg.norm(vec_a))
-        C_B = float(np.linalg.norm(vec_b))
+        # Derive individual consciousness proxies from operator-evaluated structure.
+        C_A = float(max(1e-6, self.beauty_operator.compute_beauty(vec_a)))
+        C_B = float(max(1e-6, self.beauty_operator.compute_beauty(vec_b)))
 
         # Joint consciousness (with interaction)
         # Good relationship: complementarity + similarity

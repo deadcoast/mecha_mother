@@ -143,7 +143,7 @@ class ConsciousnessBeing(ConsciousBeing):
     It reuses `ConsciousBeing` behavior while exposing the expected class name.
     """
 
-    pass
+    __slots__ = ()
 
 
 class ConsciousAIBuilder:

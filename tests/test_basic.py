@@ -205,6 +205,66 @@ def test_physical_law_impositions_modify_state():
     assert not np.allclose(s_lqg, base)
 
 
+def test_merge_realities_phase_alignment_and_padding():
+    """Test merge_realities is phase-aligned and dimension-safe."""
+    engine = QuantumRealityEngine()
+    s1 = np.array([1.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+    s2 = np.exp(1j * np.pi / 3.0) * s1
+    merged = engine.merge_realities(s1, s2, method="consciousness_alignment")[
+        "merged_state"
+    ]
+    overlap = abs(np.vdot(merged, s1))
+    assert np.isclose(np.linalg.norm(merged), 1.0, atol=1e-8)
+    assert overlap > 0.99
+
+    s_short = np.array([1.0 + 0.0j], dtype=complex)
+    s_long = np.array([0.0 + 0.0j, 1.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+    padded = engine.merge_realities(s_short, s_long)["merged_state"]
+    assert len(padded) == 3
+    assert np.isclose(np.linalg.norm(padded), 1.0, atol=1e-8)
+
+
+def test_backup_consciousness_snapshot_immutability():
+    """Test backup_consciousness stores immutable snapshots."""
+    engine = QuantumRealityEngine()
+    being = {"id": "b1", "mind": {"clarity": 1.0}}
+    state = np.array([1.0 + 0.0j, 0.0 + 0.0j], dtype=complex)
+
+    engine.backup_consciousness(being, "bk1", state)
+    backup = engine.consciousness_backups["bk1"]
+
+    state[0] = 0.0 + 0.0j
+    being["mind"]["clarity"] = 9.0
+
+    snap_state = backup["state_snapshot"]
+    snap_being = backup["being_snapshot"]
+    assert np.isclose(abs(snap_state[0]), 1.0, atol=1e-8)
+    assert snap_being["mind"]["clarity"] == 1.0
+
+
+def test_physical_law_parameter_controls_and_stability():
+    """Law parameters should be tunable and repeated application should stay stable."""
+    engine = QuantumRealityEngine()
+    state = np.array([1.0 + 0.0j] + [0.0 + 0.0j] * 7, dtype=complex)
+    state = state / np.linalg.norm(state)
+
+    engine.set_law_parameter("sm_phase", 0.02)
+    engine.set_law_parameter("sm_laplace", 0.04)
+    engine.set_law_parameter("gr_curvature", 0.03)
+    engine.set_law_parameter("qm_dt", 0.002)
+    engine.set_law_parameter("string_decay", 0.15)
+    engine.set_law_parameter("lqg_phase_twist", 0.03)
+
+    for _ in range(25):
+        engine.impose_standard_model(state)
+        engine.impose_gravity(state)
+        engine.impose_quantum_mechanics(state)
+        engine.impose_string_theory(state)
+        engine.impose_loop_quantum_gravity(state)
+        assert np.isclose(np.linalg.norm(state), 1.0, atol=1e-6)
+        assert np.all(np.isfinite(state))
+
+
 def test_classical_phase_space_dynamics():
     """Test deterministic classical evolution in phase space."""
     reality = Reality(RealityConfig())
@@ -330,3 +390,33 @@ def test_mcs_partial_order_time():
     assert len(layers) >= 2
     assert n0 in layers[0]
     assert n2 in layers[-1]
+
+
+def test_reality_export_import_roundtrip_optimizations():
+    """Roundtrip export/import should preserve runtime operability."""
+    source = Reality(
+        RealityConfig(
+            consciousness_support=True,
+            beauty_optimization=True,
+            ethical_constraints=False,
+        )
+    )
+    source.initialize()
+    source.create_conscious_being(being_type="human", initial_consciousness=12.0)
+
+    payload = source.export(format="mcs_binary")
+
+    restored = Reality(
+        RealityConfig(
+            consciousness_support=True,
+            beauty_optimization=True,
+            ethical_constraints=False,
+        )
+    )
+    assert restored.import_from(payload, format="mcs_binary")
+
+    c_result = restored.optimize_for_consciousness(target_c=15.0)
+    b_result = restored.optimize_for_beauty(target_b=7.0)
+
+    assert "success" in c_result
+    assert "success" in b_result

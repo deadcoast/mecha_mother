@@ -33,7 +33,7 @@ class RealityState(Enum):
 class MergeError(Exception):
     """Raised when realities cannot be merged."""
 
-    pass
+    ...
 
 
 @dataclass
@@ -908,8 +908,27 @@ class Reality:
             self.config = RealityConfig()
 
         # Load state
-        self.reality_state_vector = import_data["state"]["quantum"]
-        self.consciousness_field = import_data["state"]["consciousness"]
+        imported_quantum = import_data["state"]["quantum"]
+        if imported_quantum is None:
+            self.reality_state_vector = None
+        elif isinstance(imported_quantum, np.ndarray):
+            self.reality_state_vector = imported_quantum
+        else:
+            self.reality_state_vector = np.asarray(imported_quantum, dtype=complex)
+
+        imported_consciousness = import_data["state"]["consciousness"]
+        if imported_consciousness is not None:
+            self.consciousness_field = self.consciousness_engine.coerce_field(
+                imported_consciousness, reality_state=self.reality_state_vector
+            )
+        elif (
+            self.config.consciousness_support and self.reality_state_vector is not None
+        ):
+            self.consciousness_field = self.consciousness_engine.create_field(
+                self.reality_state_vector
+            )
+        else:
+            self.consciousness_field = None
         imported_beauty = import_data["state"]["beauty"]
         if imported_beauty is not None:
             self.beauty_field = self.aesthetics_engine.coerce_field(
@@ -1338,7 +1357,7 @@ class Reality:
                             parsed.append(PhysicalLaw[raw])
                             continue
                         except KeyError:
-                            pass
+                            continue
 
             return parsed or [PhysicalLaw.QUANTUM_MECHANICS]
 

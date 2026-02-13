@@ -6,6 +6,7 @@ import numpy as np
 from typing import Dict, List, Optional, Tuple, Any
 from scipy.linalg import eig
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 
 
 @dataclass
@@ -474,6 +475,43 @@ class ConsciousnessEngine:
         field_id = f"field_{id(field)}"
         self.fields[field_id] = field
         return field
+
+    def coerce_field(
+        self, field_data: Any, reality_state: Optional[np.ndarray] = None
+    ) -> ConsciousnessField:
+        """Coerce serialized/untyped consciousness field payloads into a field object."""
+        if isinstance(field_data, ConsciousnessField):
+            return field_data
+
+        field = ConsciousnessField()
+        if isinstance(field_data, dict):
+            raw_beings = field_data.get("beings", {})
+            if isinstance(raw_beings, dict):
+                for being_id, being_value in raw_beings.items():
+                    field.add_being(str(being_id), self._coerce_being(being_value))
+            amp = field_data.get("field_amplitude")
+            if isinstance(amp, np.ndarray):
+                field.field_amplitude = amp
+            elif isinstance(amp, list):
+                field.field_amplitude = np.asarray(amp)
+        if field.field_amplitude is None and reality_state is not None:
+            field.field_amplitude = np.asarray(reality_state, dtype=complex)
+        return field
+
+    def _coerce_being(self, value: Any) -> Any:
+        """Coerce a serialized being payload into an attribute-based object."""
+        if hasattr(value, "consciousness"):
+            return value
+        if isinstance(value, dict):
+            payload = dict(value)
+            if "consciousness" not in payload:
+                payload["consciousness"] = float(
+                    payload.get("initial_consciousness", 1.0)
+                )
+            return SimpleNamespace(**payload)
+        if isinstance(value, (int, float)):
+            return SimpleNamespace(consciousness=float(value))
+        return SimpleNamespace(consciousness=1.0, raw=value)
 
     def merge_fields(
         self,

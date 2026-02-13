@@ -6,6 +6,7 @@ import numpy as np
 from typing import Dict, List, Optional, Any, Protocol
 from dataclasses import dataclass
 from enum import Enum
+import copy
 
 
 class PhysicalLaw(Enum):
@@ -62,10 +63,25 @@ class QuantumRealityEngine:
         self.physical_laws: List[PhysicalLaw] = []
         self.custom_laws: List[CustomPhysicalLaw] = []
         self.current_time: float = 0.0
+        self.law_parameters: Dict[str, float] = {
+            "sm_phase": 0.01,
+            "sm_laplace": 0.03,
+            "gr_curvature": 0.02,
+            "gr_redshift": 0.02,
+            "gr_mix": 0.02,
+            "qm_dt": 0.005,
+            "string_decay": 0.1,
+            "string_phase": 0.03,
+            "lqg_phase_twist": 0.02,
+        }
 
     def register_custom_law(self, law: CustomPhysicalLaw) -> None:
         """Register a custom law implementation."""
         self.custom_laws.append(law)
+
+    def set_law_parameter(self, name: str, value: float) -> None:
+        """Set tunable coefficient for built-in physical law transforms."""
+        self.law_parameters[name] = float(value)
 
     def impose_custom_laws(self, reality_state: np.ndarray) -> np.ndarray:
         """Apply all registered custom laws in sequence."""
@@ -238,12 +254,15 @@ class QuantumRealityEngine:
     def impose_standard_model(self, reality_state: np.ndarray):
         """Impose Standard Model physics."""
         self.physical_laws.append(PhysicalLaw.STANDARD_MODEL)
+        # Effective gauge-coupling proxy: mode phase rotation + Laplacian transport.
         n = len(reality_state)
         if n == 0:
             return
         idx = np.arange(n, dtype=float)
-        phase = np.exp(1j * 0.01 * idx)
-        laplace_mix = 0.03 * (
+        phase_rate = self.law_parameters.get("sm_phase", 0.01)
+        laplace_scale = self.law_parameters.get("sm_laplace", 0.03)
+        phase = np.exp(1j * phase_rate * idx)
+        laplace_mix = laplace_scale * (
             np.roll(reality_state, 1) + np.roll(reality_state, -1) - 2.0 * reality_state
         )
         reality_state[:] = reality_state * phase + laplace_mix
@@ -252,14 +271,20 @@ class QuantumRealityEngine:
     def impose_gravity(self, reality_state: np.ndarray):
         """Impose general relativity."""
         self.physical_laws.append(PhysicalLaw.GENERAL_RELATIVITY)
+        # Curvature proxy: radial damping + gravitational redshift + neighbor mixing.
         n = len(reality_state)
         if n == 0:
             return
         idx = np.arange(n, dtype=float)
         center = (n - 1) / 2.0
-        curvature = np.exp(-0.02 * ((idx - center) / max(1.0, center)) ** 2)
-        redshift = np.exp(-1j * 0.02 * np.abs(idx - center))
-        gravity_mix = 0.02 * (np.roll(reality_state, 1) + np.roll(reality_state, -1))
+        curvature_rate = self.law_parameters.get("gr_curvature", 0.02)
+        redshift_rate = self.law_parameters.get("gr_redshift", 0.02)
+        mix_scale = self.law_parameters.get("gr_mix", 0.02)
+        curvature = np.exp(-curvature_rate * ((idx - center) / max(1.0, center)) ** 2)
+        redshift = np.exp(-1j * redshift_rate * np.abs(idx - center))
+        gravity_mix = mix_scale * (
+            np.roll(reality_state, 1) + np.roll(reality_state, -1)
+        )
         reality_state[:] = (reality_state * curvature * redshift) + gravity_mix
         self._renormalize_state(reality_state)
 
@@ -269,7 +294,7 @@ class QuantumRealityEngine:
         if len(reality_state) == 0:
             return
         H = self._build_hamiltonian(len(reality_state))
-        dt = 0.005
+        dt = self.law_parameters.get("qm_dt", 0.005)
         U = (
             np.eye(len(reality_state), dtype=complex)
             - 1j * H * dt / self.constants.hbar
@@ -280,13 +305,16 @@ class QuantumRealityEngine:
     def impose_string_theory(self, reality_state: np.ndarray):
         """Impose string theory physics."""
         self.physical_laws.append(PhysicalLaw.STRING_THEORY)
+        # String-mode proxy: FFT mode decay and frequency-dependent phase advance.
         n = len(reality_state)
         if n == 0:
             return
         modes = np.fft.fft(reality_state)
         mode_idx = np.arange(n, dtype=float)
-        envelope = 1.0 / (1.0 + 0.1 * mode_idx)
-        phase = np.exp(1j * 0.03 * np.sqrt(mode_idx + 1.0))
+        decay = self.law_parameters.get("string_decay", 0.1)
+        phase_rate = self.law_parameters.get("string_phase", 0.03)
+        envelope = 1.0 / (1.0 + decay * mode_idx)
+        phase = np.exp(1j * phase_rate * np.sqrt(mode_idx + 1.0))
         modes = modes * envelope * phase
         reality_state[:] = np.fft.ifft(modes)
         self._renormalize_state(reality_state)
@@ -294,6 +322,7 @@ class QuantumRealityEngine:
     def impose_loop_quantum_gravity(self, reality_state: np.ndarray):
         """Impose loop quantum gravity."""
         self.physical_laws.append(PhysicalLaw.LOOP_QUANTUM_GRAVITY)
+        # Spin-network proxy: local graph averaging + discrete geometric phase twist.
         if len(reality_state) == 0:
             return
         local_avg = (
@@ -301,7 +330,8 @@ class QuantumRealityEngine:
         ) / 3.0
         mag = np.abs(local_avg)
         idx = np.arange(len(reality_state), dtype=float)
-        phase_twist = 0.02 * (idx - np.mean(idx))
+        phase_twist_rate = self.law_parameters.get("lqg_phase_twist", 0.02)
+        phase_twist = phase_twist_rate * (idx - np.mean(idx))
         phase = np.exp(1j * (np.angle(local_avg) + phase_twist))
         reality_state[:] = np.tanh(mag) * phase
         self._renormalize_state(reality_state)
@@ -491,17 +521,36 @@ class QuantumRealityEngine:
         Returns:
             Dictionary with merged state
         """
-        # Combine states (simplified - full version would properly entangle)
-        if len(state1) == len(state2):
-            merged = (state1 + state2) / np.linalg.norm(state1 + state2)
-        else:
-            # Pad to same size
-            max_len = max(len(state1), len(state2))
-            s1 = np.pad(state1, (0, max_len - len(state1)))
-            s2 = np.pad(state2, (0, max_len - len(state2)))
-            merged = (s1 + s2) / np.linalg.norm(s1 + s2)
+        s1 = np.asarray(state1, dtype=complex).flatten()
+        s2 = np.asarray(state2, dtype=complex).flatten()
 
-        return {"merged_state": merged}
+        max_len = max(len(s1), len(s2))
+        if len(s1) < max_len:
+            s1 = np.pad(s1, (0, max_len - len(s1)))
+        if len(s2) < max_len:
+            s2 = np.pad(s2, (0, max_len - len(s2)))
+
+        s1 = self._normalize_copy(s1)
+        s2 = self._normalize_copy(s2)
+
+        overlap = np.vdot(s1, s2)
+        phase = float(np.angle(overlap)) if np.abs(overlap) > 1e-12 else 0.0
+        s2_aligned = s2 * np.exp(-1j * phase)
+
+        if method == "consciousness_alignment":
+            merged = 0.5 * s1 + 0.5 * s2_aligned
+        elif method == "tensor_interference":
+            merged = s1 + s2_aligned + 0.15 * (s1 * np.conj(s2_aligned))
+        else:
+            merged = s1 + s2_aligned
+
+        merged = self._normalize_copy(merged)
+        return {
+            "merged_state": merged,
+            "overlap_magnitude": float(np.abs(overlap)),
+            "phase_alignment": phase,
+            "method": method,
+        }
 
     def phase_out(self, reality_state: np.ndarray) -> bool:
         """
@@ -540,14 +589,33 @@ class QuantumRealityEngine:
             backup_id: Backup identifier
             reality_state: Current reality state
         """
-        # Store being state (simplified)
         if not hasattr(self, "consciousness_backups"):
             self.consciousness_backups = {}
+        being_snapshot = self._snapshot_being(being)
+        state_snapshot = np.array(reality_state, copy=True)
         self.consciousness_backups[backup_id] = {
-            "being": being,
-            "state": reality_state,
+            "being_snapshot": being_snapshot,
+            "state_snapshot": state_snapshot,
+            "state_shape": tuple(state_snapshot.shape),
             "timestamp": self.current_time,
         }
+
+    def _snapshot_being(self, being: Any) -> Any:
+        """Create a snapshot copy of a being for immutable backups."""
+        try:
+            return copy.deepcopy(being)
+        except Exception:
+            if hasattr(being, "__dict__"):
+                return copy.deepcopy(getattr(being, "__dict__"))
+            return {"repr": repr(being)}
+
+    def _normalize_copy(self, state: np.ndarray) -> np.ndarray:
+        """Return a normalized copy of a state vector."""
+        out = np.array(state, dtype=complex, copy=True)
+        norm = np.linalg.norm(out)
+        if norm > 0:
+            out = out / norm
+        return out
 
     def calculate_entropy(self, state: np.ndarray) -> float:
         """

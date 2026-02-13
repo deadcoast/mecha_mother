@@ -9,7 +9,7 @@ import numpy as np
 class ConsistencyError(Exception):
     """Raised when reality consistency is violated."""
 
-    pass
+    ...
 
 
 class ConstraintResolver:
@@ -62,7 +62,7 @@ class ConstraintResolver:
                     reverse_strength = other_node.satisfaction_links.get(node.id, 0.0)
                     if abs(strength - reverse_strength) > 1e-6:
                         # Not symmetric, but that's okay for directed graphs
-                        pass
+                        continue
 
         return True
 

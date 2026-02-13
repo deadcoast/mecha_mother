@@ -71,6 +71,23 @@ def test_beauty_operator():
     assert 0 <= text_beauty <= 10
 
 
+def test_beauty_metrics_monotonicity():
+    """Symmetry and complexity metrics should respond monotonically to perturbations."""
+    op = BeautyOperator(dimension=8)
+    symmetric = np.array([1.0, 0.8, 0.6, 0.4, 0.4, 0.6, 0.8, 1.0], dtype=float)
+    asymmetric = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=float)
+    repetitive = np.ones(8, dtype=float)
+    noisy = np.array([0.11, 0.93, 0.47, 0.72, 0.05, 0.66, 0.31, 0.88], dtype=float)
+
+    sym_score = op._compute_symmetry(symmetric)
+    asym_score = op._compute_symmetry(asymmetric)
+    rep_complexity = op._compute_complexity(repetitive)
+    noisy_complexity = op._compute_complexity(noisy)
+
+    assert sym_score > asym_score
+    assert rep_complexity <= noisy_complexity
+
+
 def test_aesthetics_engine():
     """Test aesthetics engine."""
     engine = AestheticsEngine()

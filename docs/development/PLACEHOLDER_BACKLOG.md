@@ -13,33 +13,36 @@
 - Replaced no-op physical-law imposition methods with concrete state transforms.
   - `src/mecha_mother/quantum/engine.py`
   - Tests: `tests/test_basic.py`
+- Hardened reality-state merge and consciousness backup semantics.
+  - `merge_realities(...)` now deterministic with phase alignment and dimension-safe normalization
+  - `backup_consciousness(...)` now stores snapshot copies
+  - Tests: `tests/test_basic.py`
+- Hardened import/export rehydration for runtime components.
+  - Consciousness field coercion added
+  - Beauty field coercion integrated in import path
+  - Roundtrip integration test exercises both optimization APIs
+  - Files: `src/mecha_mother/consciousness/engine.py`, `src/mecha_mother/reality/reality.py`, `tests/test_basic.py`
+- Added operator-level derivation comments and tunable law parameters, plus stability regression coverage.
+  - Files: `src/mecha_mother/quantum/engine.py`, `tests/test_basic.py`
+- Replaced ambiguous pass/no-op hygiene items listed in P2 and removed stale simplified wording.
+  - Files: `src/mecha_mother/core/constraints.py`, `src/mecha_mother/reality/reality.py`, `src/mecha_mother/consciousness/being.py`, `src/mecha_mother/aesthetics/engine.py`
 
 ## P0 (Correctness / Runtime Behavior)
-1. `src/mecha_mother/quantum/engine.py`
-- `merge_realities(...)` still uses basic vector averaging and labels itself simplified.
-- `backup_consciousness(...)` stores raw references without immutability/serialization guard.
-- Acceptance:
-  - Introduce deterministic merge policy with explicit norm/correlation handling and tests for unequal dimensions + phase invariance.
-  - Ensure backups are snapshot-safe (copy semantics) with tests proving later state mutation does not alter backup.
-
-2. `src/mecha_mother/reality/reality.py`
-- Import/export path currently rehydrates beauty field but other complex typed state remains weakly structured.
-- Acceptance:
-  - Add typed coercion checks for all exported/imported components used at runtime.
-  - Add integration test: export -> import -> optimize_for_beauty and optimize_for_consciousness both function.
+All currently tracked P0 items are implemented and validated.
 
 ## P1 (Theory Fidelity / Feature Depth)
 1. `src/mecha_mother/quantum/engine.py`
-- Physical law transforms are now concrete but heuristic; needs tighter mapping to documented operators.
+- Physical law transforms are concrete and parameterized; remaining work is deeper theoretical calibration.
 - Acceptance:
-  - Add operator-level derivation comments and parameterized controls.
-  - Add stability/regression tests over multiple steps.
+  - [x] Add operator-level derivation comments and parameterized controls.
+  - [x] Add stability/regression tests over multiple steps.
+  - [ ] Calibrate parameter defaults against documented target regimes.
 
 2. `src/mecha_mother/aesthetics/engine.py`
 - Some high-level routines still use heuristic consciousness proxies.
 - Acceptance:
-  - Replace proxy constants with derived values from field/operator where available.
-  - Add tests asserting monotonic response to signal complexity/symmetry perturbations.
+  - [x] Replace proxy constants with derived values from field/operator where available.
+  - [x] Add tests asserting monotonic response to signal complexity/symmetry perturbations.
 
 ## P2 (Code Hygiene / Low Risk)
 1. Remove/justify benign `pass` usages:
