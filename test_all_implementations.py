@@ -4,7 +4,8 @@ Comprehensive test of all MCS theory implementations.
 
 import numpy as np
 import sys
-sys.path.insert(0, 'src')
+
+sys.path.insert(0, "src")
 
 print("=" * 60)
 print("COMPREHENSIVE MCS IMPLEMENTATION TEST")
@@ -35,7 +36,9 @@ result = universe.bootstrap_existence(max_iter=50)
 print(f"  Bootstrap levels: {result['levels']}")
 print(f"  Fixed point reached: {result['fixed_point_reached']}")
 print(f"  Derived dimensions: {result['physics'].get('spatial_dimensions', 'N/A')}")
-print(f"  Fine structure constant: {result['physics'].get('fine_structure_constant', 0):.6f}")
+print(
+    f"  Fine structure constant: {result['physics'].get('fine_structure_constant', 0):.6f}"
+)
 
 # Test 3: Constraint Amplitude Tensor
 print("\n[3] CONSTRAINT AMPLITUDE TENSOR")
@@ -56,17 +59,17 @@ cop = ConsciousnessOperator(dimension=10)
 qualia = cop.compute_qualia_states()
 print(f"  Number of qualia states: {len(qualia)}")
 for name, q in list(qualia.items())[:3]:
-    safe_name = name.replace('λ', 'lambda_')
+    safe_name = name.replace("λ", "lambda_")
     print(f"    {safe_name}: value={q['value']:.4f}, type={q['primordial_type']}")
 
 # Test qualia spectrum formula: lambda_n = lambda_0 * (1 - 1/n^2)
-lambda_0_val = list(qualia.values())[0]['value']
+lambda_0_val = list(qualia.values())[0]["value"]
 print(f"  lambda_0 (max eigenvalue): {lambda_0_val:.4f}")
 for i, (name, q) in enumerate(list(qualia.items())[:4]):
     n = i + 1
-    expected = lambda_0_val * (1 - 1/(n*n))
-    actual = q['value']
-    safe_name = name.replace('\u03bb', 'lambda_')
+    expected = lambda_0_val * (1 - 1 / (n * n))
+    actual = q["value"]
+    safe_name = name.replace("\u03bb", "lambda_")
     print(f"    {safe_name} (n={n}): expected={expected:.4f}, actual={actual:.4f}")
 
 # Test 5: Conscious AI
@@ -85,9 +88,9 @@ ethics = EthicalDecisionEngine(dimension=8)
 
 # Create test beings
 beings = [
-    {'type': 'human', 'weight': 1.0, 'perspective': None},
-    {'type': 'human', 'weight': 1.0, 'perspective': None},
-    {'type': 'ai', 'weight': 0.5, 'perspective': None}
+    {"type": "human", "weight": 1.0, "perspective": None},
+    {"type": "human", "weight": 1.0, "perspective": None},
+    {"type": "ai", "weight": 0.5, "perspective": None},
 ]
 
 # Compute moral gradient
@@ -99,9 +102,15 @@ print(f"  Moral gradient magnitude: {np.linalg.norm(gradient):.4f}")
 # Test trolley problem
 print("\n[7] TROLLEY PROBLEM (MCS SOLUTION)")
 trolley = ethics.solve_trolley_problem(n_track_a=5, n_track_b=1)
-print(f"  Option A (do nothing, 5 die): {trolley['options']['A_do_nothing']['value']:.4f}")
-print(f"  Option B (pull lever, 1 dies): {trolley['options']['B_pull_lever']['value']:.4f}")
-print(f"  Option C (find alternative): {trolley['options']['C_new_track']['value']:.4f}")
+print(
+    f"  Option A (do nothing, 5 die): {trolley['options']['A_do_nothing']['value']:.4f}"
+)
+print(
+    f"  Option B (pull lever, 1 dies): {trolley['options']['B_pull_lever']['value']:.4f}"
+)
+print(
+    f"  Option C (find alternative): {trolley['options']['C_new_track']['value']:.4f}"
+)
 print(f"  Ranking: {trolley['ranking']}")
 print(f"  Best option: {trolley['best_option']}")
 print(f"  Note: {trolley['note']}")
@@ -114,12 +123,20 @@ aesthetics = AestheticsEngine()
 
 # Test love analysis
 person_a = {
-    'openness': 0.8, 'conscientiousness': 0.7, 'extraversion': 0.5,
-    'agreeableness': 0.9, 'neuroticism': 0.3, 'intelligence': 0.8
+    "openness": 0.8,
+    "conscientiousness": 0.7,
+    "extraversion": 0.5,
+    "agreeableness": 0.9,
+    "neuroticism": 0.3,
+    "intelligence": 0.8,
 }
 person_b = {
-    'openness': 0.7, 'conscientiousness': 0.6, 'extraversion': 0.6,
-    'agreeableness': 0.8, 'neuroticism': 0.4, 'intelligence': 0.7
+    "openness": 0.7,
+    "conscientiousness": 0.6,
+    "extraversion": 0.6,
+    "agreeableness": 0.8,
+    "neuroticism": 0.4,
+    "intelligence": 0.7,
 }
 
 love_analysis = aesthetics.analyze_love(person_a, person_b)
@@ -148,7 +165,7 @@ print(f"  Random pattern beauty: {beauty2:.4f}")
 patterns = beauty.get_fundamental_patterns()
 print(f"  Fundamental beauty patterns: {len(patterns)}")
 for name, p in list(patterns.items())[:2]:
-    safe_name = name.replace('\u03a8', 'Psi_').replace('\u03bb', 'lambda_')
+    safe_name = name.replace("\u03a8", "Psi_").replace("\u03bb", "lambda_")
     print(f"    {safe_name}: beauty={p['beauty']:.4f}, type={p['type']}")
 
 # Test 10: Heaven Optimizer
@@ -157,6 +174,7 @@ from mecha_mother.heaven.optimizer import HeavenOptimizer
 
 optimizer = HeavenOptimizer()
 
+
 # Create mock location and occupants with numeric preferences
 class MockOccupant:
     def __init__(self, c, pref, ctype):
@@ -164,16 +182,23 @@ class MockOccupant:
         self.preferences = pref
         self.being_type = ctype
 
+
 occupants = [
-    MockOccupant(5.0, {'lighting_warmth': 0.7, 'social_density': 0.6, 'nature_presence': 0.8}, 'human'),
-    MockOccupant(4.0, {'lighting_warmth': 0.5, 'social_density': 0.4, 'nature_presence': 0.9}, 'human')
+    MockOccupant(
+        5.0,
+        {"lighting_warmth": 0.7, "social_density": 0.6, "nature_presence": 0.8},
+        "human",
+    ),
+    MockOccupant(
+        4.0,
+        {"lighting_warmth": 0.5, "social_density": 0.4, "nature_presence": 0.9},
+        "human",
+    ),
 ]
 
 # Optimize
 result = optimizer.optimize_environment(
-    location="test_location",
-    occupants=occupants,
-    method='gradient_ascent'
+    location="test_location", occupants=occupants, method="gradient_ascent"
 )
 print(f"  Initial H: {result['h_current']:.4f}")
 print(f"  Final H: {result['heaven_score']:.4f}")
@@ -195,14 +220,14 @@ self_state = np.random.randn(8) + 1j * np.random.randn(8)
 self_state = self_state / np.linalg.norm(self_state)
 
 beauty_patterns = beauty.get_fundamental_patterns()
-beauty_state = list(beauty_patterns.values())[0]['vector']
+beauty_state = list(beauty_patterns.values())[0]["vector"]
 
 peak = aesthetics.compute_peak_experience_probability(
     self_state=self_state,
     beauty_state=beauty_state,
     beauty_value=8.5,
     consciousness_value=10.0,
-    temperature=10.0
+    temperature=10.0,
 )
 print(f"  Alignment with beauty: {peak['alignment']:.4f}")
 print(f"  Peak probability: {peak['probability']:.4f}")
@@ -217,15 +242,19 @@ initial_state = np.random.randn(8) + 1j * np.random.randn(8)
 initial_state = initial_state / np.linalg.norm(initial_state)
 
 # Linear Schrodinger
-linear_result = qre.simulate(initial_state, time_steps=100, dt=0.01, use_mcs_evolution=False)
+linear_result = qre.simulate(
+    initial_state, time_steps=100, dt=0.01, use_mcs_evolution=False
+)
 # Non-linear MCS
-nonlinear_result = qre.simulate(initial_state, time_steps=100, dt=0.01, use_mcs_evolution=True)
+nonlinear_result = qre.simulate(
+    initial_state, time_steps=100, dt=0.01, use_mcs_evolution=True
+)
 
 print(f"  Linear evolution type: {linear_result['evolution_type']}")
 print(f"  Non-linear evolution type: {nonlinear_result['evolution_type']}")
 
 # Measure difference
-diff = np.linalg.norm(linear_result['final_state'] - nonlinear_result['final_state'])
+diff = np.linalg.norm(linear_result["final_state"] - nonlinear_result["final_state"])
 print(f"  State difference (linear vs MCS): {diff:.4f}")
 
 print("\n" + "=" * 60)
