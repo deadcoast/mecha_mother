@@ -10,6 +10,7 @@ import numpy as np
 
 class ParticleType(Enum):
     """Standard particle types."""
+
     ELECTRON = "electron"
     PROTON = "proton"
     NEUTRON = "neutron"
@@ -21,13 +22,13 @@ class ParticleType(Enum):
 @dataclass
 class Particle:
     """Represents a fundamental particle."""
-    
+
     id: str
     particle_type: ParticleType
     position: np.ndarray
     momentum: np.ndarray
     properties: Dict[str, Any]
-    
+
     def __post_init__(self):
         """Validate particle properties."""
         if len(self.position) != len(self.momentum):
