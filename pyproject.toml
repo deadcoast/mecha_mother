@@ -9,6 +9,7 @@ dependencies = [
     "scipy>=1.10.0",
     "matplotlib>=3.7.0",
     "networkx>=3.0",
+    "h5py>=3.15.1",
 ]
 
 [project.optional-dependencies]
@@ -30,3 +31,8 @@ packages = ["src/mecha_mother"]
 [tool.mypy]
 ignore_missing_imports = true
 disable_error_code = ["import-untyped"]
+
+[dependency-groups]
+dev = [
+    "h5py>=3.15.1",
+]

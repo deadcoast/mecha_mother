@@ -301,55 +301,6 @@ class AestheticsEngine:
             'optimized_beauty_field': beauty_field
         }
     
-    def generate_beautiful_art(
-        self,
-        art_type: str = 'visual',
-        complexity: float = 0.5
-    ) -> Any:
-        """
-        Generate art optimized for beauty.
-        
-        Args:
-            art_type: Type of art ('visual', 'poetic', 'musical')
-            complexity: Complexity level (0-1)
-            
-        Returns:
-            Generated artwork
-        """
-        n = self.beauty_operator.dim
-        
-        if art_type == 'poetic':
-            # Generate beautiful text patterns
-            patterns = [
-                "Golden light through fractal leaves",
-                "Symmetry of breath and tide",
-                "Harmonic convergence of souls",
-                "Infinite recursion of love",
-                "Phi-spiraled galaxies in eyes",
-            ]
-            
-            # Weight by beauty scores
-            scores = [self.beauty_operator.compute_beauty(p) for p in patterns]
-            probs = np.exp(np.array(scores)) / np.sum(np.exp(np.array(scores)))
-            selected = np.random.choice(patterns, p=probs)
-            return selected
-        
-        elif art_type == 'visual':
-            # Find most beautiful vector
-            eigenvalues, eigenvectors = eig(self.beauty_operator.B)  # type: ignore[misc]
-            idx = np.argmax(np.abs(eigenvalues))
-            beautiful_vec = eigenvectors[:, idx]
-            
-            # Add controlled noise
-            noise = np.random.randn(n) * (1 - complexity) * 0.1
-            result_vec = beautiful_vec + noise
-            result_vec = result_vec / np.linalg.norm(result_vec)
-            
-            return result_vec
-        
-        else:
-            return None
-    
     def compute_love_operator(
         self,
         consciousness_A: float,
@@ -701,7 +652,7 @@ class AestheticsEngine:
         
         if art_type == 'visual':
             # Find most beautiful vector (largest eigenvalue eigenvector)
-            eigenvalues, eigenvectors = eig(self.beauty_operator.B)
+            eigenvalues, eigenvectors = eig(self.beauty_operator.B)  # type: ignore[misc]
             idx = np.argmax(np.abs(eigenvalues))
             beautiful_vec = eigenvectors[:, idx]
             
@@ -710,12 +661,7 @@ class AestheticsEngine:
             result_vec = beautiful_vec + noise
             result_vec = result_vec / (np.linalg.norm(result_vec) + 1e-10)
             
-            return {
-                'type': 'visual',
-                'vector': result_vec,
-                'beauty_score': self.beauty_operator.compute_beauty(result_vec),
-                'complexity': complexity
-            }
+            return result_vec
         
         elif art_type == 'poetic':
             # Generate beautiful text patterns
@@ -734,12 +680,7 @@ class AestheticsEngine:
             scores = np.array([self.beauty_operator.compute_beauty(p) for p in patterns])
             probs = np.exp(scores) / np.sum(np.exp(scores))
             selected = np.random.choice(patterns, p=probs)
-            
-            return {
-                'type': 'poetic',
-                'text': selected,
-                'beauty_score': self.beauty_operator.compute_beauty(selected)
-            }
+            return str(selected)
         
         elif art_type == 'musical':
             # Generate beautiful frequency ratios
@@ -753,12 +694,7 @@ class AestheticsEngine:
                 freq = 440 * ratio  # A4 reference
                 notes.append(freq)
             
-            return {
-                'type': 'musical',
-                'frequencies': notes,
-                'ratios': [n / 440 for n in notes],
-                'harmony_score': self._compute_harmony_score(notes)
-            }
+            return notes
         
         return None
     

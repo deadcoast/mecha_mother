@@ -24,7 +24,7 @@ This task list systematically reviews each document, cross-references its conten
 ### Concepts to Verify
 
 #### @VC01
-See [VERIFIED.md#vc01](VERIFIED.md#vc01) for verified items.
+See [VERIFIED.md#vc01](docs/development/VERIFIED.md#vc01) for verified items.
 
 - [ ] Evolution equation: $\vec{F} = \frac{d\vec{p}}{dt}$ or $F = m\ddot{r}$
   - @STATUS: `MISSING` No classical mechanics evolution implemented
@@ -36,7 +36,7 @@ See [VERIFIED.md#vc01](VERIFIED.md#vc01) for verified items.
   - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/quantum/particles.py`
 
 #### @VC02
-See [VERIFIED.md#vc02](VERIFIED.md#vc02) for verified items.
+See [VERIFIED.md#vc02](docs/development/VERIFIED.md#vc02) for verified items.
 
 #### @VC03
 - [ ] **Summary Table Comparison**
@@ -55,7 +55,7 @@ See [VERIFIED.md#vc02](VERIFIED.md#vc02) for verified items.
 ### Concepts to Verify
 
 #### @VC04
-See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
+See [VERIFIED.md#vc04](docs/development/VERIFIED.md#vc04) for verified items.
 
 #### @VC05
 - [ ] Consistency Path Integral: $\mathcal{P}_{\text{classical}}[X(t)] = \exp(i \lambda \int \mathcal{C}\{X, \dot{X}, \ddot{X}; \Theta\} d\tau)$
@@ -101,9 +101,9 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
 ## Document 003.md: Architecture of MCS
 
 ### Concepts to Verify
-#### [@VC08](VERIFIED.md#vc08)
+#### [@VC08](docs/development/VERIFIED.md#vc08)
 
-#### [@VC09](VERIFIED.md#vc09)
+#### [@VC09](docs/development/VERIFIED.md#vc09)
 
 #### @VC10
 - [ ] Closed constraint loop: $c_1 \Vdash c_2 \Vdash \cdots \Vdash c_n \Vdash c_1$
@@ -145,7 +145,7 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
   - @ACTION: Add causal ordering to MCS graph based on constraint dependencies
 - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/core/mcs.py`
 
-#### [@VC13](VERIFIED.md#vc13)
+#### [@VC13](docs/development/VERIFIED.md#vc13)
 
 #### @VC14
 - [ ] **Non-linear Quantum Corrections**
@@ -165,7 +165,7 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
 ## Document 004.md: How to Prove the Theory
 
 ### Concepts to Verify
-#### [@VC15](VERIFIED.md#vc15)
+#### [@VC15](docs/development/VERIFIED.md#vc15)
 
 #### @VC16
 - [ ] **Experimental Predictions**
@@ -251,7 +251,7 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
     - @ACTION: Add Planck scale derivation
   - @PATH: `src/mecha_mother/quantum/engine.py:23, 51, 234-240`
 
-#### [@VC21](VERIFIED.md#vc21)
+#### [@VC21](docs/development/VERIFIED.md#vc21)
 
 #### @VC22
 - [ ] **Standard Model Derivation**
@@ -275,7 +275,7 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
 
 ### Concepts to Verify
 
-#### [@VC23](VERIFIED.md#vc23)
+#### [@VC23](docs/development/VERIFIED.md#vc23)
 
 #### @VC24
 - [x] Qualia formula: $\lambda_n = \lambda_0 \cdot (1 - \frac{1}{n^2})$
@@ -363,11 +363,11 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
 ## Document 007.md: Ethics of Consistency
 
 ### Concepts to Verify
-#### [@VC30](VERIFIED.md#vc30)
+#### [@VC30](docs/development/VERIFIED.md#vc30)
 
-#### [@VC31](VERIFIED.md#vc31)
+#### [@VC31](docs/development/VERIFIED.md#vc31)
 
-#### [@VC32](VERIFIED.md#vc32)
+#### [@VC32](docs/development/VERIFIED.md#vc32)
 
 #### @VC33
 - [ ] Human rights: $R_{\text{exist}} = \frac{\mathbb{C}_{\text{system}}}{\mathbb{C}_{\text{total}}} \cdot \frac{d\mathbb{C}_{\text{system}}}{dt}$
@@ -387,7 +387,7 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
   - @ACTION: Document golden rule derivation or add explicit golden rule calculation
 - @PATH: `src/mecha_mother/ethics/engine.py`
 
-#### [@VC35](VERIFIED.md#vc35)
+#### [@VC35](docs/development/VERIFIED.md#vc35)
 
 #### @VC36
 - [ ] Trolley problem: Option A, B, C analysis with consciousness values
@@ -409,14 +409,14 @@ See [VERIFIED.md#vc04](VERIFIED.md#vc04) for verified items.
 
 ### Verified Concepts
 
-#### [@VC37](VERIFIED.md#vc37)
+#### [@VC37](docs/development/VERIFIED.md#vc37)
 
-#### [@VC38](VERIFIED.md#vc38)
+#### [@VC38](docs/development/VERIFIED.md#vc38)
 
 ### Concepts to Verify
 
 #### @VC39
-See [VERIFIED.md#vc39](VERIFIED.md#vc39) for verified eigenvalue equation.
+See [VERIFIED.md#vc39](docs/development/VERIFIED.md#vc39) for verified eigenvalue equation.
 
 - [ ] Beauty formula: $\mathfrak{B}(\Psi) = \frac{\mathbb{C}(\Psi)}{K(\Psi)} \cdot (1 - \frac{S(\Psi)}{S_{\max}})$
   - @STATUS: `PARTIAL` Formula NOT explicitly implemented - uses expectation value instead
@@ -425,7 +425,7 @@ See [VERIFIED.md#vc39](VERIFIED.md#vc39) for verified eigenvalue equation.
 - @PATH: `src/mecha_mother/aesthetics/engine.py`
 
 #### @VC40
-See [VERIFIED.md#vc40](VERIFIED.md#vc40) for verified patterns.
+See [VERIFIED.md#vc40](docs/development/VERIFIED.md#vc40) for verified patterns.
 
 - [ ] Verify eigenvalues match expected values (φ, 2, D_f, etc.)
   - @STATUS: `PARTIAL` Patterns computed but eigenvalues not verified against doc formulas
@@ -536,7 +536,7 @@ See [VERIFIED.md#vc40](VERIFIED.md#vc40) for verified patterns.
 ### Concepts to Verify
 
 #### @VC47
-See [VERIFIED.md#vc47](VERIFIED.md#vc47) for verified public methods.
+See [VERIFIED.md#vc47](docs/development/VERIFIED.md#vc47) for verified public methods.
 
 #### @VC48
 - [ ] **Consciousness Development Kit (CDK)**
@@ -554,7 +554,7 @@ See [VERIFIED.md#vc47](VERIFIED.md#vc47) for verified public methods.
   - @PATH: Should be new file or in consciousness module
 
 #### @VC49
-See [VERIFIED.md#vc49](VERIFIED.md#vc49) for verified Heaven Builder SDK.
+See [VERIFIED.md#vc49](docs/development/VERIFIED.md#vc49) for verified Heaven Builder SDK.
 
 #### @VC50
 - [ ] **Ethics Compiler**
@@ -579,7 +579,7 @@ See [VERIFIED.md#vc49](VERIFIED.md#vc49) for verified Heaven Builder SDK.
   - @PATH: Should be in quantum engine
 
 #### @VC52
-See [VERIFIED.md#vc52](VERIFIED.md#vc52) for verified unit tests.
+See [VERIFIED.md#vc52](docs/development/VERIFIED.md#vc52) for verified unit tests.
 
 - [ ] `test_reality_merge()`
   - @STATUS: `MISSING` Not in test files
@@ -601,10 +601,10 @@ See [VERIFIED.md#vc52](VERIFIED.md#vc52) for verified unit tests.
 ### Concepts to Verify
 
 #### @VC53
-See [VERIFIED.md#vc53](VERIFIED.md#vc53) for redundancy status.
+See [VERIFIED.md#vc53](docs/development/VERIFIED.md#vc53) for redundancy status.
 
 #### @VC54
-See [VERIFIED.md#vc53](VERIFIED.md#vc53) for redundancy status.
+See [VERIFIED.md#vc53](docs/development/VERIFIED.md#vc53) for redundancy status.
 
 ### Redundancy Check
 #### [@RC12](REVIEW.md#rc12)
@@ -616,16 +616,16 @@ See [VERIFIED.md#vc53](VERIFIED.md#vc53) for redundancy status.
 ### Concepts to Verify
 
 #### @VC55
-See [VERIFIED.md#vc55](VERIFIED.md#vc55) for verified OVERVIEW.md.
+See [VERIFIED.md#vc55](docs/development/VERIFIED.md#vc55) for verified OVERVIEW.md.
 
 #### @VC56
-See [VERIFIED.md#vc56](VERIFIED.md#vc56) for verified STATUS.md.
+See [VERIFIED.md#vc56](docs/development/VERIFIED.md#vc56) for verified STATUS.md.
 
 #### @VC57
-See [VERIFIED.md#vc57](VERIFIED.md#vc57) for verified DISCLAIMER.md.
+See [VERIFIED.md#vc57](docs/development/VERIFIED.md#vc57) for verified DISCLAIMER.md.
 
 #### @VC58
-See [VERIFIED.md#vc58](VERIFIED.md#vc58) for verified IMPLEMENTATION_SUMMARY.md.
+See [VERIFIED.md#vc58](docs/development/VERIFIED.md#vc58) for verified IMPLEMENTATION_SUMMARY.md.
 
 ### Redundancy Check
 #### [@RC13](REVIEW.md#rc13)
@@ -637,19 +637,19 @@ See [VERIFIED.md#vc58](VERIFIED.md#vc58) for verified IMPLEMENTATION_SUMMARY.md.
 ### Consistency Check Tags
 
 #### @CC01
-- [x] **MCS Theory Consistency** - See [VERIFIED.md](VERIFIED.md) for consistency checks
+- [x] **MCS Theory Consistency** - See [VERIFIED.md](docs/development/VERIFIED.md) for consistency checks
 
 #### @CC02
-- [x] **Consciousness Operator Consistency** - See [VERIFIED.md](VERIFIED.md) for consistency checks
+- [x] **Consciousness Operator Consistency** - See [VERIFIED.md](docs/development/VERIFIED.md) for consistency checks
 
 #### @CC03
-- [x] **Ethics Consistency** - See [VERIFIED.md](VERIFIED.md) for consistency checks
+- [x] **Ethics Consistency** - See [VERIFIED.md](docs/development/VERIFIED.md) for consistency checks
 
 #### @CC04
-- [x] **Aesthetics Consistency** - See [VERIFIED.md](VERIFIED.md) for consistency checks
+- [x] **Aesthetics Consistency** - See [VERIFIED.md](docs/development/VERIFIED.md) for consistency checks
 
 #### @CC05
-- [x] **Reality API Consistency** - See [VERIFIED.md](VERIFIED.md) for consistency checks
+- [x] **Reality API Consistency** - See [VERIFIED.md](docs/development/VERIFIED.md) for consistency checks
 
 ---
 

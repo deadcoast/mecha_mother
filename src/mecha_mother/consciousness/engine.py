@@ -333,8 +333,8 @@ class ConsciousnessOperator:
         
         psi = psi / (np.linalg.norm(psi) + 1e-10)
         
-        history = [psi.copy()]
-        qualities = []
+        history: List[np.ndarray] = [psi.copy()]
+        qualities: List[float] = []
         
         # Unitary evolution: dψ/dt = -iℂψ
         for t in range(steps):
@@ -769,7 +769,7 @@ class ConsciousnessEngine:
             new_state = projection_operator(reflected)
             
             # Check convergence
-            diff = np.linalg.norm(new_state - state)
+            diff = float(np.linalg.norm(new_state - state))
             if diff < tolerance:
                 break
             

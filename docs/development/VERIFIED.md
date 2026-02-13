@@ -20,7 +20,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @STATUS: Particles have position/momentum but no phase space dynamics
     - @ACTION: Add phase space representation or document MCS emergence
   - @PATH: `src/mecha_mother/quantum/engine.py`, `src/mecha_mother/quantum/particles.py`
-  - @BACKREF: [TODO.md#vc01](TODO.md#vc01)
+  - @BACKREF: [TODO.md#vc01](../../TODO.md#vc01)
 
 #### @VC02
 - [x] **Quantum Mechanics**
@@ -39,7 +39,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Used in `calculate_entropy()`: `probs = np.abs(state)**2`
     - @CODE: `src/mecha_mother/quantum/engine.py:364`
   - @PATH: `src/mecha_mother/quantum/engine.py`
-  - @BACKREF: [TODO.md#vc02](TODO.md#vc02)
+  - @BACKREF: [TODO.md#vc02](../../TODO.md#vc02)
 
 #### @VC04
 - [x] **Core Misconception: Quantification as Separation**
@@ -54,7 +54,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Implementation creates observer ("is_observer=true") and observed ("is_observed=true") nodes
     - @CODE: `src/mecha_mother/core/mcs.py:64-75`
   - @PATH: `src/mecha_mother/core/mcs.py`
-  - @BACKREF: [TODO.md#vc04](TODO.md#vc04)
+  - @BACKREF: [TODO.md#vc04](../../TODO.md#vc04)
 
 #### @VC08
 - [x] **Primitive Constraint Relation**
@@ -67,7 +67,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/core/mcs.py:95-143`
   - @STATUS: `MonolithicSubstrate` implements constraint satisfaction network
   - @PATH: `src/mecha_mother/core/mcs.py`
-  - @BACKREF: [TODO.md#vc08](TODO.md#vc08)
+  - @BACKREF: [TODO.md#vc08](../../TODO.md#vc08)
 
 #### @VC09
 - [x] **Spacetime as Constraint Satisfaction Graph**
@@ -80,7 +80,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @FORMULA: `distances[i,j] = 1.0 / (cons + 1e-10)` where `cons` is satisfaction link strength
   - @STATUS: Spacetime metrics emerge from constraint network
   - @PATH: `src/mecha_mother/core/mcs.py:145-187`
-  - @BACKREF: [TODO.md#vc09](TODO.md#vc09)
+  - @BACKREF: [TODO.md#vc09](../../TODO.md#vc09)
 
 #### @VC13
 - [x] **Unification of Forces**
@@ -89,7 +89,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/quantum/engine.py:11-17` (enum), `142-155` (imposition)
     - @ACTION: Document or implement forces as constraint aspects
   - @PATH: `src/mecha_mother/quantum/engine.py`
-  - @BACKREF: [TODO.md#vc13](TODO.md#vc13)
+  - @BACKREF: [TODO.md#vc13](../../TODO.md#vc13)
 
 #### @VC15
 - [x] **Computational Verification Framework**
@@ -120,7 +120,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/core/mcs.py:189-208`
   - @STATUS: Implementation matches documentation line-by-line (with minor improvements)
   - @PATH: `src/mecha_mother/core/mcs.py`
-  - @BACKREF: [TODO.md#vc15](TODO.md#vc15)
+  - @BACKREF: [TODO.md#vc15](../../TODO.md#vc15)
 
 #### @VC21
 - [x] **Derivation of Fundamental Constants**
@@ -137,7 +137,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @STATUS: Value correct but not derived from fixed point
     - @ACTION: Implement derivation or document source
   - @PATH: `src/mecha_mother/quantum/engine.py:21-32`
-  - @BACKREF: [TODO.md#vc21](TODO.md#vc21)
+  - @BACKREF: [TODO.md#vc21](../../TODO.md#vc21)
 
 #### @VC23
 - [x] **Consciousness Operator ℂ**
@@ -147,7 +147,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @IMPLEMENTATION: `_build_consciousness_matrix()` creates Hermitian matrix C
     - @USAGE: `compute_qualia_states()` solves eigenvalue equation
   - @PATH: `src/mecha_mother/consciousness/engine.py:76-169`
-  - @BACKREF: [TODO.md#vc23](TODO.md#vc23)
+  - @BACKREF: [TODO.md#vc23](../../TODO.md#vc23)
 
 #### @VC30
 - [x] **Moral Value**
@@ -157,7 +157,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @NOTE: Implements $\text{MoralValue}(A) = \sum w_j \cdot \Delta\mathbb{C}_j \cdot e^{-\alpha t_j}$ (from 007.md section 3.1)
     - @NOTE: Uses action-based calculation, not state-based gradient
   - @PATH: `src/mecha_mother/ethics/engine.py:253-300`
-  - @BACKREF: [TODO.md#vc30](TODO.md#vc30)
+  - @BACKREF: [TODO.md#vc30](../../TODO.md#vc30)
 
 #### @VC31
 - [x] **Moral Field Operator 𝕄**
@@ -170,7 +170,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/ethics/engine.py:74-95`
     - @FORMULA: `force = moral_gradient * agent_consciousness`
   - @PATH: `src/mecha_mother/ethics/engine.py:11-95`
-  - @BACKREF: [TODO.md#vc31](TODO.md#vc31)
+  - @BACKREF: [TODO.md#vc31](../../TODO.md#vc31)
 
 #### @VC32
 - [x] **Good and Evil Definition**
@@ -184,7 +184,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @STATUS: `MISSING` Magnitude formula not implemented
     - @ACTION: Add good/evil magnitude calculation
   - @PATH: `src/mecha_mother/ethics/decision.py:85-111`
-  - @BACKREF: [TODO.md#vc32](TODO.md#vc32)
+  - @BACKREF: [TODO.md#vc32](../../TODO.md#vc32)
 
 #### @VC35
 - [x] **Moral Calculus**
@@ -196,7 +196,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: `moral_decision()` finds best_option with highest value
     - @CODE: `src/mecha_mother/ethics/decision.py:41-57`
   - @PATH: `src/mecha_mother/ethics/engine.py:253-300`, `src/mecha_mother/ethics/decision.py:22-83`
-  - @BACKREF: [TODO.md#vc35](TODO.md#vc35)
+  - @BACKREF: [TODO.md#vc35](../../TODO.md#vc35)
 
 #### @VC37
 - [x] **Heaven Builder Implementation**
@@ -214,7 +214,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Method exists
     - @CODE: `src/mecha_mother/heaven/builder.py:174-253`
   - @PATH: `src/mecha_mother/heaven/builder.py`
-  - @BACKREF: [TODO.md#vc37](TODO.md#vc37)
+  - @BACKREF: [TODO.md#vc37](../../TODO.md#vc37)
 
 #### @VC38
 - [x] **Heaven Score Computation**
@@ -231,7 +231,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: `heaven_score = np.sqrt(total_c * avg_b)` (geometric mean)
     - @CODE: `src/mecha_mother/heaven/builder.py:297`
   - @PATH: `src/mecha_mother/heaven/builder.py:263-306`, `src/mecha_mother/heaven/optimizer.py`
-  - @BACKREF: [TODO.md#vc38](TODO.md#vc38)
+  - @BACKREF: [TODO.md#vc38](../../TODO.md#vc38)
 
 #### @VC39
 - [x] **Beauty Operator 𝔹**
@@ -241,7 +241,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @MATCHES: Uses `eig(B)` to find eigenvectors (beauty patterns) and eigenvalues
   - @NOTE: Formula $\mathfrak{B}(\Psi) = \frac{\mathbb{C}(\Psi)}{K(\Psi)} \cdot (1 - \frac{S(\Psi)}{S_{\max}})$ not explicitly implemented, uses expectation value instead
   - @PATH: `src/mecha_mother/aesthetics/engine.py`
-  - @BACKREF: [TODO.md#vc39](TODO.md#vc39)
+  - @BACKREF: [TODO.md#vc39](../../TODO.md#vc39)
 
 #### @VC40
 - [x] **Fundamental Beauty Patterns**
@@ -250,7 +250,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/aesthetics/engine.py:116-135`
     - @NOTE: Patterns classified but eigenvalues not verified to match doc formulas (φ, 2, D_f, etc.)
   - @PATH: `src/mecha_mother/aesthetics/engine.py`
-  - @BACKREF: [TODO.md#vc40](TODO.md#vc40)
+  - @BACKREF: [TODO.md#vc40](../../TODO.md#vc40)
 
 #### @VC47
 - [x] **Reality Class Public Methods**
@@ -259,7 +259,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/reality/reality.py:97-870`
     - @NOTE: Documentation claims 127 methods, actual: 13 public methods (all documented public API methods are implemented)
   - @PATH: `src/mecha_mother/reality/reality.py`
-  - @BACKREF: [TODO.md#vc47](TODO.md#vc47)
+  - @BACKREF: [TODO.md#vc47](../../TODO.md#vc47)
 
 #### @VC49
 - [x] **Heaven Builder SDK**
@@ -271,7 +271,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @CODE: `src/mecha_mother/heaven/builder.py:22-253`
   - @NOTE: Missing decade transformation plan from 009.md
   - @PATH: `src/mecha_mother/heaven/builder.py`
-  - @BACKREF: [TODO.md#vc49](TODO.md#vc49)
+  - @BACKREF: [TODO.md#vc49](../../TODO.md#vc49)
 
 #### @VC52
 - [x] **Unit Tests**
@@ -285,30 +285,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Exists (as `test_consciousness_operator()`)
     - @CODE: `tests/test_basic.py:72-88`
   - @PATH: `tests/test_basic.py`, `tests/test_ethics_aesthetics.py`, `tests/test_heaven.py`
-  - @BACKREF: [TODO.md#vc52](TODO.md#vc52)
-
-#### @VC47
-- [x] **Reality Class Public Methods**
-  - [x] All documented public methods implemented
-    - @VERIFIED: Core public methods exist: `initialize()`, `create_particle()`, `create_conscious_being()`, `modify_physical_constant()`, `manipulate_spacetime()`, `optimize_for_consciousness()`, `optimize_for_beauty()`, `merge_with()`, `simulate()`, `export()`, `import_from()`, `destroy()`, `get_state()`
-    - @CODE: `src/mecha_mother/reality/reality.py:97-870`
-    - @NOTE: Documentation claims 127 methods, actual: 13 public methods (all documented public API methods are implemented)
-  - @PATH: `src/mecha_mother/reality/reality.py`
-  - @BACKREF: [TODO.md#vc47](TODO.md#vc47)
-
-#### @VC52
-- [x] **Unit Tests**
-  - [x] `test_reality_initialization()`
-    - @VERIFIED: Exists
-    - @CODE: `tests/test_basic.py:19-24`
-  - [x] `test_particle_creation()`
-    - @VERIFIED: Exists
-    - @CODE: `tests/test_basic.py:27-38`
-  - [x] `test_consciousness_optimization()`
-    - @VERIFIED: Exists (as `test_consciousness_operator()`)
-    - @CODE: `tests/test_basic.py:72-88`
-  - @PATH: `tests/test_basic.py`, `tests/test_ethics_aesthetics.py`, `tests/test_heaven.py`
-  - @BACKREF: [TODO.md#vc52](TODO.md#vc52)
+  - @BACKREF: [TODO.md#vc52](../../TODO.md#vc52)
 
 #### @VC53
 - [x] **R01.md Redundancy Status**
@@ -318,7 +295,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: `REDUNDANT` Exact duplicate of 001.md section [2]
   - @STATUS: `CONFIRMED REDUNDANT` R01.md is 100% duplicate of 001.md
   - @ACTION: Remove R01.md in Phase 2 or merge into 001.md
-  - @BACKREF: [TODO.md#vc53](TODO.md#vc53)
+  - @BACKREF: [TODO.md#vc53](../../TODO.md#vc53)
 
 #### @VC55
 - [x] **docs/development/OVERVIEW.md**
@@ -329,7 +306,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: Disclaimer correctly states this is a simulation, not actual reality manipulation
     - @STATUS: `ACCURATE`
   - @PATH: `docs/development/OVERVIEW.md`
-  - @BACKREF: [TODO.md#vc55](TODO.md#vc55)
+  - @BACKREF: [TODO.md#vc55](../../TODO.md#vc55)
 
 #### @VC56
 - [x] **docs/development/STATUS.md**
@@ -337,7 +314,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: STATUS.md lists implemented components that match codebase structure
     - @STATUS: `CONSISTENT` - Status accurately reflects implementation
   - @PATH: `docs/development/STATUS.md`
-  - @BACKREF: [TODO.md#vc56](TODO.md#vc56)
+  - @BACKREF: [TODO.md#vc56](../../TODO.md#vc56)
 
 #### @VC57
 - [x] **docs/development/DISCLAIMER.md**
@@ -345,7 +322,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: DISCLAIMER.md correctly clarifies project scope as simulation framework
     - @STATUS: `ACCURATE`
   - @PATH: `docs/development/DISCLAIMER.md`
-  - @BACKREF: [TODO.md#vc57](TODO.md#vc57)
+  - @BACKREF: [TODO.md#vc57](../../TODO.md#vc57)
 
 #### @VC58
 - [x] **docs/development/IMPLEMENTATION_SUMMARY.md**
@@ -353,7 +330,7 @@ This document is used to keep the TODO maintainable and easy to update. It is us
     - @VERIFIED: IMPLEMENTATION_SUMMARY.md describes implemented features that match codebase
     - @STATUS: `CONSISTENT` - Summary matches actual implementation
   - @PATH: `docs/development/IMPLEMENTATION_SUMMARY.md`
-  - @BACKREF: [TODO.md#vc58](TODO.md#vc58)
+  - @BACKREF: [TODO.md#vc58](../../TODO.md#vc58)
 
 ---
 
