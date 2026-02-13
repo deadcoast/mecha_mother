@@ -15,7 +15,7 @@ from mecha_mother.quantum.engine import (
 from mecha_mother.consciousness.engine import ConsciousnessEngine, ConsciousnessField
 from mecha_mother.core.constraints import ConstraintResolver, ConsistencyError
 from mecha_mother.ethics.engine import EthicsEngine
-from mecha_mother.aesthetics.engine import AestheticsEngine
+from mecha_mother.aesthetics.engine import AestheticsEngine, BeautyField
 
 
 class RealityState(Enum):
@@ -88,7 +88,7 @@ class Reality:
         # State tracking
         self.reality_state_vector: Optional[np.ndarray] = None
         self.consciousness_field: Optional[ConsciousnessField] = None
-        self.beauty_field: Optional[Dict[str, Any]] = None
+        self.beauty_field: Optional[BeautyField] = None
         self.ethical_constraint_field: Optional[Dict[str, Any]] = None
 
         # History and versioning
@@ -387,8 +387,10 @@ class Reality:
                 constant_name, new_value
             )
 
-        # Note: beauty_field is a Dict and doesn't support update_for_constant_change
-        # This is a placeholder for future implementation
+        if self.config.beauty_optimization and self.beauty_field is not None:
+            self.beauty_field.update_for_constant_change(
+                constant_name, new_value, self.aesthetics_engine.beauty_operator
+            )
 
         self.history.append(
             {
@@ -908,7 +910,15 @@ class Reality:
         # Load state
         self.reality_state_vector = import_data["state"]["quantum"]
         self.consciousness_field = import_data["state"]["consciousness"]
-        self.beauty_field = import_data["state"]["beauty"]
+        imported_beauty = import_data["state"]["beauty"]
+        if imported_beauty is not None:
+            self.beauty_field = self.aesthetics_engine.coerce_field(
+                imported_beauty,
+                reality_state=self.reality_state_vector,
+                consciousness_field=self.consciousness_field,
+            )
+        else:
+            self.beauty_field = None
         self.ethical_constraint_field = import_data["state"]["ethics"]
 
         # Load metadata

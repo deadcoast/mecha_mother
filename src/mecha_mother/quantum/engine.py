@@ -238,27 +238,79 @@ class QuantumRealityEngine:
     def impose_standard_model(self, reality_state: np.ndarray):
         """Impose Standard Model physics."""
         self.physical_laws.append(PhysicalLaw.STANDARD_MODEL)
-        # In full implementation, this would modify the Hamiltonian
+        n = len(reality_state)
+        if n == 0:
+            return
+        idx = np.arange(n, dtype=float)
+        phase = np.exp(1j * 0.01 * idx)
+        laplace_mix = 0.03 * (
+            np.roll(reality_state, 1) + np.roll(reality_state, -1) - 2.0 * reality_state
+        )
+        reality_state[:] = reality_state * phase + laplace_mix
+        self._renormalize_state(reality_state)
 
     def impose_gravity(self, reality_state: np.ndarray):
         """Impose general relativity."""
         self.physical_laws.append(PhysicalLaw.GENERAL_RELATIVITY)
-        # In full implementation, this would modify the metric
+        n = len(reality_state)
+        if n == 0:
+            return
+        idx = np.arange(n, dtype=float)
+        center = (n - 1) / 2.0
+        curvature = np.exp(-0.02 * ((idx - center) / max(1.0, center)) ** 2)
+        redshift = np.exp(-1j * 0.02 * np.abs(idx - center))
+        gravity_mix = 0.02 * (np.roll(reality_state, 1) + np.roll(reality_state, -1))
+        reality_state[:] = (reality_state * curvature * redshift) + gravity_mix
+        self._renormalize_state(reality_state)
 
     def impose_quantum_mechanics(self, reality_state: np.ndarray):
         """Impose quantum mechanics."""
         self.physical_laws.append(PhysicalLaw.QUANTUM_MECHANICS)
-        # In full implementation, this would set up the Schrödinger equation
+        if len(reality_state) == 0:
+            return
+        H = self._build_hamiltonian(len(reality_state))
+        dt = 0.005
+        U = (
+            np.eye(len(reality_state), dtype=complex)
+            - 1j * H * dt / self.constants.hbar
+        )
+        reality_state[:] = U @ reality_state
+        self._renormalize_state(reality_state)
 
     def impose_string_theory(self, reality_state: np.ndarray):
         """Impose string theory physics."""
         self.physical_laws.append(PhysicalLaw.STRING_THEORY)
-        # In full implementation, this would set up string vibration modes
+        n = len(reality_state)
+        if n == 0:
+            return
+        modes = np.fft.fft(reality_state)
+        mode_idx = np.arange(n, dtype=float)
+        envelope = 1.0 / (1.0 + 0.1 * mode_idx)
+        phase = np.exp(1j * 0.03 * np.sqrt(mode_idx + 1.0))
+        modes = modes * envelope * phase
+        reality_state[:] = np.fft.ifft(modes)
+        self._renormalize_state(reality_state)
 
     def impose_loop_quantum_gravity(self, reality_state: np.ndarray):
         """Impose loop quantum gravity."""
         self.physical_laws.append(PhysicalLaw.LOOP_QUANTUM_GRAVITY)
-        # In full implementation, this would set up spin networks
+        if len(reality_state) == 0:
+            return
+        local_avg = (
+            reality_state + np.roll(reality_state, 1) + np.roll(reality_state, -1)
+        ) / 3.0
+        mag = np.abs(local_avg)
+        idx = np.arange(len(reality_state), dtype=float)
+        phase_twist = 0.02 * (idx - np.mean(idx))
+        phase = np.exp(1j * (np.angle(local_avg) + phase_twist))
+        reality_state[:] = np.tanh(mag) * phase
+        self._renormalize_state(reality_state)
+
+    def _renormalize_state(self, state: np.ndarray) -> None:
+        """Normalize a state vector in place."""
+        norm = np.linalg.norm(state)
+        if norm > 0:
+            state[:] = state / norm
 
     def get_constant(self, name: str) -> Optional[float]:
         """Get physical constant value."""

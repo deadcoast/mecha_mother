@@ -3,9 +3,90 @@ Aesthetics Engine - implements the Beauty Operator 𝔹.
 """
 
 import numpy as np
-from typing import Dict, List, Any
+from dataclasses import dataclass
+from typing import Dict, List, Any, Optional
 from scipy.linalg import eig
 import zlib
+
+
+@dataclass
+class BeautyField:
+    """Concrete beauty field with computed metrics over a reality state."""
+
+    reality_state: np.ndarray
+    consciousness_field: Any
+    beauty_values: np.ndarray
+    constant_sensitivity: float = 1.0
+
+    def average_beauty(self) -> float:
+        if self.beauty_values.size == 0:
+            return 0.0
+        return float(np.mean(self.beauty_values))
+
+    def max_beauty(self) -> float:
+        if self.beauty_values.size == 0:
+            return 0.0
+        return float(np.max(self.beauty_values))
+
+    def min_beauty(self) -> float:
+        if self.beauty_values.size == 0:
+            return 0.0
+        return float(np.min(self.beauty_values))
+
+    def calculate_entropy(self) -> float:
+        if self.beauty_values.size == 0:
+            return 0.0
+        probs = np.abs(self.beauty_values)
+        probs = probs / (np.sum(probs) + 1e-10)
+        entropy = -np.sum(probs * np.log(probs + 1e-10))
+        return float(entropy)
+
+    def update_for_constant_change(
+        self, constant_name: str, new_value: float, operator: "BeautyOperator"
+    ) -> None:
+        """Retune field sensitivity when physical constants change."""
+        influence = {
+            "alpha": 0.05,
+            "hbar": 0.04,
+            "c": 0.02,
+            "G": 0.01,
+        }.get(constant_name, 0.01)
+        adjustment = 1.0 + influence * np.tanh(np.log1p(abs(float(new_value))))
+        self.constant_sensitivity = float(
+            np.clip(self.constant_sensitivity * adjustment, 0.5, 2.0)
+        )
+        self.recompute(operator)
+
+    def recompute(self, operator: "BeautyOperator") -> None:
+        """Recompute beauty values from current state and sensitivity."""
+        state_flat = np.asarray(self.reality_state).flatten()
+        if state_flat.size == 0:
+            self.beauty_values = np.zeros(1, dtype=float)
+            return
+
+        chunk_len = max(1, operator.dim)
+        n_chunks = max(1, int(np.ceil(state_flat.size / chunk_len)))
+        chunks = np.array_split(state_flat, n_chunks)
+        values = np.array(
+            [
+                operator.compute_beauty(chunk) * self.constant_sensitivity
+                for chunk in chunks
+            ],
+            dtype=float,
+        )
+        self.beauty_values = np.clip(values, 0.0, 10.0)
+
+    def to_json(self) -> Dict[str, Any]:
+        """Serialize beauty field for export."""
+        return {
+            "__type__": "beauty_field",
+            "constant_sensitivity": float(self.constant_sensitivity),
+            "beauty_values": self.beauty_values.tolist(),
+            "average_beauty": self.average_beauty(),
+            "max_beauty": self.max_beauty(),
+            "min_beauty": self.min_beauty(),
+            "entropy": self.calculate_entropy(),
+        }
 
 
 class BeautyOperator:
@@ -194,10 +275,11 @@ class AestheticsEngine:
     def __init__(self):
         """Initialize aesthetics engine."""
         self.beauty_operator = BeautyOperator()
+        self.current_field: Optional[BeautyField] = None
 
     def create_field(
         self, reality_state: np.ndarray, consciousness_field: Any
-    ) -> Dict[str, Any]:
+    ) -> BeautyField:
         """
         Create beauty field for a reality.
 
@@ -206,13 +288,47 @@ class AestheticsEngine:
             consciousness_field: Consciousness field
 
         Returns:
-            Beauty field dictionary
+            Concrete beauty field object
         """
-        return {
-            "reality_state": reality_state,
-            "consciousness_field": consciousness_field,
-            "beauty_map": None,
-        }
+        initial_field = BeautyField(
+            reality_state=np.asarray(reality_state),
+            consciousness_field=consciousness_field,
+            beauty_values=np.zeros(1, dtype=float),
+        )
+        initial_field.recompute(self.beauty_operator)
+        self.current_field = initial_field
+        return initial_field
+
+    def coerce_field(
+        self,
+        field_data: Any,
+        reality_state: Optional[np.ndarray] = None,
+        consciousness_field: Any = None,
+    ) -> BeautyField:
+        """Coerce dictionaries/serialized payloads into a concrete BeautyField."""
+        if isinstance(field_data, BeautyField):
+            self.current_field = field_data
+            return field_data
+
+        state = np.asarray(reality_state) if reality_state is not None else np.zeros(8)
+        if isinstance(field_data, dict):
+            values_raw = field_data.get("beauty_values", [5.0])
+            values = np.asarray(values_raw, dtype=float)
+            constant_sensitivity = float(field_data.get("constant_sensitivity", 1.0))
+            field = BeautyField(
+                reality_state=state,
+                consciousness_field=consciousness_field,
+                beauty_values=np.clip(values, 0.0, 10.0),
+                constant_sensitivity=constant_sensitivity,
+            )
+            if field.beauty_values.size == 0:
+                field.recompute(self.beauty_operator)
+            self.current_field = field
+            return field
+
+        field = self.create_field(state, consciousness_field)
+        self.current_field = field
+        return field
 
     def compute_env_beauty(self, location: Any) -> float:
         """
@@ -224,21 +340,25 @@ class AestheticsEngine:
         Returns:
             Beauty value
         """
-        # Simplified: use a default beauty value
-        # In full implementation, would analyze actual environment
-        return 5.0
+        if self.current_field is not None:
+            base = self.current_field.average_beauty()
+        else:
+            base = self.beauty_operator.compute_beauty(str(location))
+        location_bias = 0.1 * np.tanh(len(str(location)) / 20.0)
+        return float(np.clip(base + location_bias, 0.0, 10.0))
 
     def average_beauty(self) -> float:
         """Get average beauty in the field."""
-        # Simplified implementation
-        return 5.0
+        if self.current_field is None:
+            return 0.0
+        return self.current_field.average_beauty()
 
     def merge_fields(
         self,
-        field1: Dict[str, Any],
-        field2: Dict[str, Any],
+        field1: Any,
+        field2: Any,
         method: str = "consciousness_alignment",
-    ) -> Dict[str, Any]:
+    ) -> BeautyField:
         """
         Merge two beauty fields.
 
@@ -250,16 +370,24 @@ class AestheticsEngine:
         Returns:
             Merged beauty field
         """
-        merged = {
-            "reality_state": field1.get("reality_state"),
-            "consciousness_field": field1.get("consciousness_field"),
-            "beauty_map": None,
-        }
+        f1 = self.coerce_field(field1)
+        f2 = self.coerce_field(field2)
+        merged_values = np.clip((f1.beauty_values + f2.beauty_values) / 2.0, 0.0, 10.0)
+        merged_state = (f1.reality_state + f2.reality_state) / 2.0
+        merged = BeautyField(
+            reality_state=merged_state,
+            consciousness_field=f1.consciousness_field,
+            beauty_values=merged_values,
+            constant_sensitivity=float(
+                (f1.constant_sensitivity + f2.constant_sensitivity) / 2.0
+            ),
+        )
+        self.current_field = merged
         return merged
 
     def update_field(
         self, reality_state: np.ndarray, consciousness_field: Any
-    ) -> Dict[str, Any]:
+    ) -> BeautyField:
         """
         Update beauty field after state change.
 
@@ -270,29 +398,42 @@ class AestheticsEngine:
         Returns:
             Updated beauty field
         """
-        return self.create_field(reality_state, consciousness_field)
+        if self.current_field is None:
+            return self.create_field(reality_state, consciousness_field)
+        self.current_field.reality_state = np.asarray(reality_state)
+        self.current_field.consciousness_field = consciousness_field
+        self.current_field.recompute(self.beauty_operator)
+        return self.current_field
 
     def update_for_constant_change(self, constant_name: str, new_value: float):
         """Update field for physical constant change."""
-        # Recalculate beauty based on new constants
-        pass
+        if self.current_field is not None:
+            self.current_field.update_for_constant_change(
+                constant_name, new_value, self.beauty_operator
+            )
 
     def max_beauty(self) -> float:
         """Get maximum beauty in field."""
-        return 10.0
+        if self.current_field is None:
+            return 0.0
+        return self.current_field.max_beauty()
 
     def min_beauty(self) -> float:
         """Get minimum beauty in field."""
-        return 0.0
+        if self.current_field is None:
+            return 0.0
+        return self.current_field.min_beauty()
 
     def calculate_entropy(self) -> float:
         """Calculate beauty entropy."""
-        return 2.0
+        if self.current_field is None:
+            return 0.0
+        return self.current_field.calculate_entropy()
 
     def optimize_reality(
         self,
         current_state: np.ndarray,
-        beauty_field: Dict[str, Any],
+        beauty_field: Any,
         target_b: float,
         preserve_consciousness: bool = True,
         method: str = "aesthetic_gradient",
@@ -312,7 +453,10 @@ class AestheticsEngine:
         Returns:
             Optimization results
         """
-        current_b = self.average_beauty()
+        field = self.coerce_field(
+            beauty_field, reality_state=current_state, consciousness_field=None
+        )
+        current_b = field.average_beauty()
 
         if current_b >= target_b:
             return {
@@ -320,18 +464,31 @@ class AestheticsEngine:
                 "b_increase": 0,
                 "final_b": current_b,
                 "already_optimal": True,
+                "optimized_beauty_field": field,
             }
 
-        # Simple optimization: increase beauty
-        # In full implementation, would use gradient ascent
-        final_b = min(target_b, current_b * 1.5)  # Cap increase
+        improvement = float(np.clip(target_b - current_b, 0.0, 10.0))
+        values = field.beauty_values.copy()
+        if method == "aesthetic_gradient":
+            ramp = np.linspace(0.8, 1.2, max(1, len(values)))
+            values = values + 0.35 * improvement * ramp
+        elif method == "aesthetic_median":
+            values = values + 0.25 * improvement
+        else:
+            values = values + 0.2 * improvement
+
+        if preserve_consciousness and field.consciousness_field is not None:
+            values = values * 0.98 + 0.02 * np.mean(values)
+
+        field.beauty_values = np.clip(values, 0.0, 10.0)
+        final_b = field.average_beauty()
 
         return {
             "success": True,
             "b_increase": final_b - current_b,
             "final_b": final_b,
             "optimized_state": current_state,
-            "optimized_beauty_field": beauty_field,
+            "optimized_beauty_field": field,
         }
 
     def compute_love_operator(

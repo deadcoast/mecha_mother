@@ -12,7 +12,7 @@ from mecha_mother.consciousness import (
     ConsciousnessEvolver,
     BeingType,
 )
-from mecha_mother.quantum.engine import UniverseFromScratch
+from mecha_mother.quantum.engine import UniverseFromScratch, QuantumRealityEngine
 
 
 def test_reality_creation():
@@ -171,6 +171,38 @@ def test_custom_physical_law_registration():
     reality.initialize()
     reality.add_custom_physical_law(MyPhysicalLaw())
     assert len(reality.quantum_engine.custom_laws) == 1
+
+
+def test_physical_law_impositions_modify_state():
+    """Test built-in physical-law impositions apply concrete state transforms."""
+    engine = QuantumRealityEngine()
+    base = np.ones(8, dtype=complex)
+    base = base / np.linalg.norm(base)
+
+    s_std = base.copy()
+    engine.impose_standard_model(s_std)
+    assert np.linalg.norm(s_std) > 0
+    assert not np.allclose(s_std, base)
+
+    s_gr = base.copy()
+    engine.impose_gravity(s_gr)
+    assert np.linalg.norm(s_gr) > 0
+    assert not np.allclose(s_gr, base)
+
+    s_qm = base.copy()
+    engine.impose_quantum_mechanics(s_qm)
+    assert np.linalg.norm(s_qm) > 0
+    assert not np.allclose(s_qm, base)
+
+    s_str = base.copy()
+    engine.impose_string_theory(s_str)
+    assert np.linalg.norm(s_str) > 0
+    assert not np.allclose(s_str, base)
+
+    s_lqg = base.copy()
+    engine.impose_loop_quantum_gravity(s_lqg)
+    assert np.linalg.norm(s_lqg) > 0
+    assert not np.allclose(s_lqg, base)
 
 
 def test_classical_phase_space_dynamics():

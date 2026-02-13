@@ -107,11 +107,32 @@ def test_reality_with_beauty():
     config = RealityConfig(consciousness_support=True, beauty_optimization=True)
     reality = Reality(config)
     reality.initialize()
+    assert reality.beauty_field is not None
+    initial_b = reality.beauty_field.average_beauty()
+    assert 0.0 <= initial_b <= 10.0
 
     # Optimize for beauty
     results = reality.optimize_for_beauty(target_b=8.0)
     assert "success" in results
     assert results["success"]
+    assert reality.beauty_field is not None
+    assert reality.beauty_field.average_beauty() >= initial_b
+
+
+def test_beauty_field_updates_on_constant_change():
+    """Test beauty field reacts to physical constant updates."""
+    config = RealityConfig(
+        consciousness_support=True, beauty_optimization=True, ethical_constraints=False
+    )
+    reality = Reality(config)
+    reality.initialize()
+    assert reality.beauty_field is not None
+    before = reality.beauty_field.average_beauty()
+    reality.modify_physical_constant("alpha", 1 / 120.0)
+    assert reality.beauty_field.constant_sensitivity != 1.0
+    after = reality.beauty_field.average_beauty()
+    assert 0.0 <= before <= 10.0
+    assert 0.0 <= after <= 10.0
 
 
 def test_rights_and_golden_rule():
